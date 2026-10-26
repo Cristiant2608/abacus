@@ -5,7 +5,7 @@ import { Alert, LogBox } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as Device from 'expo-device';
 import * as Updates from 'expo-updates';
-import { loadAsync } from 'expo-font';
+import { FontSource, loadAsync } from 'expo-font';
 
 import {
   AntDesign,
@@ -23,7 +23,7 @@ export default function App() {
   LogBox.ignoreAllLogs(true);
 
   const cache = async () => {
-    const cacheFonts = (fonts: { [p: string]: string }[]) => fonts.map((font) => loadAsync(font));
+    const cacheFonts = (fonts: Record<string, FontSource>[]) => fonts.map((font) => loadAsync(font));
     const fontAssets = cacheFonts([
       AntDesign.font,
       Ionicons.font,
@@ -31,7 +31,7 @@ export default function App() {
       MaterialIcons.font,
     ]);
 
-    await Promise.all([fontAssets]);
+    await Promise.all(fontAssets);
   };
 
   const onOTAUpdate = async () => {

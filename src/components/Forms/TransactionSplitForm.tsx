@@ -127,7 +127,7 @@ export default function TransactionSplitForm({
           />
         </AStack>
       )}
-      {isNew && !compact && (
+      {(isNew || templateMode) && (
       <AFormView>
         <AStack style={{ width: '100%' }} row>
           {types.map(({ type, keyName }, i) => (
@@ -138,13 +138,21 @@ export default function TransactionSplitForm({
                   setTransaction({
                     ...formData,
                     type,
+                    sourceName: '',
+                    sourceId: undefined,
+                    destinationName: '',
+                    destinationId: undefined,
+                    currencyCode: '',
+                    currencySymbol: '',
                   });
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch();
                 }
               }}
               style={{
-                width: 115,
-                height: 40,
+                flex: 1,
+                minHeight: 48,
+                paddingVertical: 8,
+                paddingHorizontal: 3,
                 borderTopLeftRadius: (i === 0) ? 10 : 0,
                 borderBottomLeftRadius: (i === 0) ? 10 : 0,
                 borderTopRightRadius: (i === 2) ? 10 : 0,
@@ -317,17 +325,19 @@ export default function TransactionSplitForm({
           ...formData,
           sourceName: value,
           sourceId: undefined,
-          currencyCode: '',
-          currencySymbol: '',
+          ...(formData.type !== 'deposit' && { currencyCode: '', currencySymbol: '' }),
         })}
         onSelectAutocomplete={(autocomplete) => setTransaction({
           ...formData,
           sourceName: autocomplete.name,
           sourceId: autocomplete.id,
-          currencyCode: autocomplete.currencyCode,
-          currencySymbol: autocomplete.currencySymbol,
+          ...(formData.type !== 'deposit' && {
+            currencyCode: autocomplete.currencyCode,
+            currencySymbol: autocomplete.currencySymbol,
+            currencyDecimalPlaces: autocomplete.currencyDecimalPlaces,
+          }),
         })}
-        InputRightElement={deleteBtn(['sourceId', 'sourceName', 'currencyCode', 'currencySymbol'])}
+        InputRightElement={deleteBtn(formData.type === 'deposit' ? ['sourceId', 'sourceName'] : ['sourceId', 'sourceName', 'currencyCode', 'currencySymbol'])}
         routeApi="accounts"
       />
 
@@ -342,13 +352,19 @@ export default function TransactionSplitForm({
           ...formData,
           destinationName: value,
           destinationId: undefined,
+          ...(formData.type === 'deposit' && { currencyCode: '', currencySymbol: '' }),
         })}
         onSelectAutocomplete={(autocomplete) => setTransaction({
           ...formData,
           destinationName: autocomplete.name,
           destinationId: autocomplete.id,
+          ...(formData.type === 'deposit' && {
+            currencyCode: autocomplete.currencyCode,
+            currencySymbol: autocomplete.currencySymbol,
+            currencyDecimalPlaces: autocomplete.currencyDecimalPlaces,
+          }),
         })}
-        InputRightElement={deleteBtn(['destinationId', 'destinationName'])}
+        InputRightElement={deleteBtn(formData.type === 'deposit' ? ['destinationId', 'destinationName', 'currencyCode', 'currencySymbol'] : ['destinationId', 'destinationName'])}
         routeApi="accounts"
       />
 

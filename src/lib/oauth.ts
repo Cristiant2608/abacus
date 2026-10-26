@@ -60,19 +60,20 @@ export const deleteOldSecureStore = async () => {
   ]);
 };
 
-export const replaceAccessToken = async (credential: TCredential) => {
+export const replaceAccessToken = async (credential: TCredential, previousRefreshToken = credential.refreshToken) => {
   const credentials = await getCredentials();
   const newCredentials = credentials.map((c) => {
     if (
       c.email === credential.email
       && c.backendURL === credential.backendURL
       && c.oauthClientId === credential.oauthClientId
-      && c.refreshToken === credential.refreshToken
+      && c.refreshToken === previousRefreshToken
     ) {
       return {
         ...c,
         accessToken: credential.accessToken,
         accessTokenExpiresIn: credential.accessTokenExpiresIn,
+        refreshToken: credential.refreshToken || c.refreshToken,
       };
     }
     return c;

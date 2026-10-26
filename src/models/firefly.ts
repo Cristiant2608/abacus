@@ -424,7 +424,7 @@ export default createModel<RootModel>()({
       newCredential.accessTokenExpiresIn = response.issuedAt && response.expiresIn
         ? (response.issuedAt + response.expiresIn + -600).toString()
         : '';
-      await replaceAccessToken(newCredential);
+      await replaceAccessToken(newCredential, credential.refreshToken);
 
       // set backend url and access token for this session
       axios.defaults.headers.Authorization = `Bearer ${response.accessToken}`;

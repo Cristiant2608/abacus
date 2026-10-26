@@ -20,6 +20,7 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Abacus Test
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: '$(inherited) ABACUS_VALIDATION_PROBE'
     info:
       path: Generated/App-Info.plist
       properties:

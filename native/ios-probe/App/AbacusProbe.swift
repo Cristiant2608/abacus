@@ -1,8 +1,15 @@
 import SwiftUI
+import AppIntents
 
 @main
 struct AbacusProbe: App {
     @State private var message = "Abre esta app desde Atajos o el widget."
+
+    init() {
+        #if ABACUS_VALIDATION_PROBE
+        AbacusProbeShortcuts.updateAppShortcutParameters()
+        #endif
+    }
 
     var body: some Scene {
         WindowGroup {

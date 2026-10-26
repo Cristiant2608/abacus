@@ -16,6 +16,30 @@ const template: ExpenseTemplate = {
 };
 
 describe('expense links and requests', () => {
+  test.each(['withdrawal', 'deposit', 'transfer'] as const)('prepares and round-trips the %s transaction type', (kind) => {
+    const link = quickAccessURL(scheme, { action: 'expense', kind });
+    const parsed = parseQuickAccessURL(link, scheme);
+    expect(parsed.kind).toBe(kind);
+    expect(prepareExpense(parsed, [], profile).type).toBe(kind);
+    expect(prepareExpense({ action: 'expense', templateId: template.id }, [{ ...template, split: { ...template.split, type: kind } }], profile).type).toBe(kind);
+  });
+
+  test('rejects saving flags in public links and trusts only a matching live native request', () => {
+    expect(() => parseQuickAccessURL(`${scheme}://quick/expense?v=1&operation=save`, scheme)).toThrow('quick_access_invalid_link');
+    const request = { action: 'expense' as const, requestId: 'native-1', templateId: template.id };
+    const url = quickAccessURL(scheme, request);
+    const publicQueue = new QuickAccessQueue();
+    publicQueue.enqueue(url, scheme, 1000);
+    expect(publicQueue.shift().operation).toBeUndefined();
+    const nativeQueue = new QuickAccessQueue();
+    nativeQueue.enqueueNativeSave(url, scheme, { requestId: 'native-1', expiresAt: 5000 }, 1000);
+    expect(nativeQueue.shift().operation).toBe('save');
+    expect(() => nativeQueue.enqueueNativeSave(url, scheme, { requestId: 'different', expiresAt: 5000 }, 1000)).toThrow('quick_access_expired');
+  });
+
+  test('rejects mismatched template types', () => {
+    expect(() => prepareExpense({ action: 'expense', templateId: template.id, kind: 'deposit' }, [template], profile)).toThrow('quick_access_type_mismatch');
+  });
   test.each([
     [[], false], [['credentials'], false], [['dashboard'], true],
     [['dashboard', 'QuickAccessScreen'], true],

@@ -22,7 +22,7 @@ import { initialSplit, TransactionSplitType } from '../../models/transactions';
 import { AStackFlex, AText, AView } from '../UI/ALibrary';
 import AButton from '../UI/ALibrary/AButton';
 import { useThemeColors } from '../../lib/common';
-import { normalizeExpenseAmount } from '../../lib/quick-access';
+import { validateMovement } from '../../lib/quick-access';
 
 const EMPTY_SPLITS: TransactionSplitType[] = [];
 
@@ -134,11 +134,7 @@ export default function TransactionForm({
     if (quick) {
       const split = store.getState().transactions.transactionPayload?.transactions?.[0];
       try {
-        normalizeExpenseAmount(split?.amount || '');
-        if (!split.description.trim() || (!split.sourceId && !split.sourceName.trim())) {
-          Alert.alert(translate('quick_access_required_fields'));
-          return;
-        }
+        validateMovement(split);
       } catch (error) {
         Alert.alert(translate((error as Error).message));
         return;

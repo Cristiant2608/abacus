@@ -28,7 +28,7 @@ export default function ExpenseTemplateScreen({ navigation, route }: ScreenType)
         id: template?.id || Crypto.randomUUID(),
         name: name.trim(),
         profileKey,
-        split: { ...split, type: 'withdrawal', amount },
+        split: { ...split, amount },
       });
       navigation.goBack();
     } catch (error) { Alert.alert(translate((error as Error).message)); }

@@ -57,11 +57,11 @@ struct ExpenseWidgetView: View {
             Text("Abacus").font(.caption.bold()).foregroundStyle(.secondary)
             if family == .systemSmall {
                 Image(systemName: "plus.circle.fill").font(.largeTitle).foregroundStyle(.orange)
-                Text(first == nil ? "Nuevo gasto" : entry.configuration.firstName).font(.headline)
+                Text(first == nil ? "Nuevo movimiento" : entry.configuration.firstName).font(.headline)
                 Text("Revisar y guardar").font(.caption).foregroundStyle(.secondary)
             } else {
                 Link(destination: newExpenseURL) {
-                    Label("Nuevo gasto", systemImage: "plus.circle.fill").font(.headline).foregroundStyle(.orange)
+                    Label("Nuevo movimiento", systemImage: "plus.circle.fill").font(.headline).foregroundStyle(.orange)
                         .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 4)
                 }
                 HStack(spacing: 16) {
@@ -91,7 +91,7 @@ struct AbacusExpenseWidget: Widget {
             ExpenseWidgetView(entry: entry)
         }
         .configurationDisplayName("Captura rápida")
-        .description("Prepara un gasto o abre tus plantillas de Abacus.")
+        .description("Prepara un gasto, ingreso o transferencia de Abacus.")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }

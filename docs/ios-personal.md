@@ -2,8 +2,8 @@
 
 Versión personal de Abacus con plantillas, captura rápida, Atajos y widgets de
 iOS. Se instala junto a la app original y requiere configurar Firefly de nuevo.
-La prueba mínima de firma gratuita, widget y Atajos se completó en el iPhone
-conectado antes de integrar estas funciones en React Native.
+La firma gratuita y los widgets funcionan en el iPhone conectado. La aparición
+de acciones en Atajos sigue pendiente de verificación en el dispositivo.
 
 ## Uso
 
@@ -11,24 +11,25 @@ conectado antes de integrar estas funciones en React Native.
 2. Pulsa Crear plantilla. El nombre es obligatorio; el importe puede quedar
    vacío para introducirlo al usarla. Cuenta, destino, categoría y presupuesto
    se rellenan con los mismos selectores de Firefly que las transacciones.
-3. Toca una plantilla para revisar el gasto. Los detalles adicionales están
-   plegados. La fecha es la actual y el gasto solo se envía al pulsar Guardar.
-4. En Atajos, añade la acción Preparar gasto de Abacus Personal. Selecciona una
+3. Toca una plantilla para revisar el movimiento. Los detalles adicionales están
+   plegados. La fecha es la actual y el movimiento solo se envía al pulsar Guardar.
+4. En Atajos, añade la acción Preparar movimiento de Abacus Personal. Selecciona una
    plantilla y, si quieres, indica un importe o una descripción que sustituyan
    los valores guardados. Abre la app e inicia sesión al menos una vez para que
    las plantillas aparezcan en el selector del sistema.
 5. Para configurar un widget, pulsa Copiar enlace para widget en una plantilla.
    Añade Captura rápida a la pantalla de inicio, edítalo y pega el enlace con un
    nombre para el botón. El tamaño pequeño abre el primer acceso configurado
-   (Nuevo gasto por defecto). El mediano ofrece Nuevo gasto y hasta dos accesos.
+   (Nuevo movimiento por defecto). El mediano ofrece Nuevo movimiento y hasta dos accesos.
 
 Las plantillas se pueden editar, eliminar y ordenar. Los dos primeros accesos
-también aparecen al mantener pulsado el icono, junto a Nuevo gasto y Accesos
+también aparecen al mantener pulsado el icono, junto a Nuevo movimiento y Accesos
 rápidos. Las plantillas pertenecen al servidor y usuario de Firefly activos;
 un enlace de otra cuenta no registra ni abre un gasto con datos de esa cuenta.
 
 Los enlaces usan `abacus-personal://quick/expense?v=1` con `templateId`,
-`amount`, `description` y `requestId` opcionales. La ruta `quick/templates?v=1`
+`amount`, `description`, `kind` y `requestId` opcionales. `kind` admite
+`withdrawal`, `deposit` o `transfer`; ningún enlace permite guardar directamente. La ruta `quick/templates?v=1`
 abre la lista. Nunca deben incluir tokens ni credenciales. La acción nativa
 genera un identificador de solicitud para evitar aperturas duplicadas. Los
 enlaces esperan al inicio de sesión y a que se cierre cualquier formulario
@@ -36,12 +37,24 @@ abierto. Atajos entrega las solicitudes mediante una bandeja privada de la app,
 que se vacía al recibirlas en JavaScript. La cola de JavaScript se mantiene solo
 durante la sesión. No se requieren enlaces universales ni App Groups.
 
+La plantilla permite elegir gasto, ingreso o transferencia. En Atajos hay dos
+acciones: **Preparar movimiento** abre el formulario y **Guardar movimiento**
+envía directamente a Firefly con una plantilla obligatoria. Para guardar, elige
+cuentas existentes: origen en gastos, destino en ingresos y dos cuentas distintas
+en transferencias. El importe y la descripción pueden sustituirse desde Atajos.
+
+Guardar movimiento abre Abacus para autenticar y enviar, sin mostrar el formulario.
+Solo confirma éxito cuando Firefly devuelve el identificador del movimiento.
+Una solicitud caduca a los 60 segundos y no se conserva tras reiniciar la app.
+Los errores no se reintentan automáticamente; ante un resultado incierto, revisa
+Firefly antes de repetir. Los widgets y enlaces siempre preparan el formulario.
+
 ## Compilación
 
 La rama `feat/ios-personal-validation` ejecuta `iOS personal validation` al subir
 cambios relevantes. Tras incorporar el workflow a la rama predeterminada también
 puede ejecutarse manualmente. El runner
-macOS genera un IPA sin firmar; no recibe credenciales de Apple ni de Firefly.
+macOS 26 genera un IPA sin firmar; no recibe credenciales de Apple ni de Firefly.
 Descargar el artefacto `abacus-probe-unsigned` en `artifacts/`.
 
 El segundo trabajo compila la base React Native con `APP_VARIANT=personal` y
@@ -90,7 +103,7 @@ Modo de desarrollador que solicite iOS. No enviar contraseñas a GitHub Actions.
 ## Comprobación en el iPhone
 
 1. Abrir «Abacus Test» y comprobar que aparece la pantalla de prueba.
-2. Añadir «Prueba de captura» desde la galería de widgets y tocar «Nuevo gasto».
+2. Añadir «Prueba de captura» desde la galería de widgets y tocar «Nuevo movimiento».
 3. Comprobar que la app muestra «Acceso desde el widget correcto».
 4. Buscar «Preparar gasto de prueba» de Abacus Test en Atajos y ejecutarlo.
 5. Confirmar que abre la app también después de cerrarla.
@@ -135,3 +148,7 @@ Se revisó también <https://github.com/arxdeus/xcross>. La compilación de Reac
 Native sigue pendiente en <https://github.com/arxdeus/xcross/issues/21>; por eso
 no sustituye al runner macOS para este proyecto. No se instala Flutter ni se
 migra la aplicación a otro framework para esta prueba.
+
+La identidad compilada incluye el prefijo de firma de xtool. El verificador
+comprueba que los metadatos de App Intents coincidan con esa identidad. Cada
+compilación usa un número de versión creciente y registra los Atajos al iniciar.

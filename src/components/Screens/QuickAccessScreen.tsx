@@ -50,6 +50,7 @@ export default function QuickAccessScreen({ navigation }: ScreenType) {
             onPress={() => open('QuickExpenseScreen', { payload: { splits: [prepareExpense({ action: 'expense', templateId: template.id }, templates, profileKey)] } })}
           >
             <AText fontSize={19} bold>{template.name}</AText>
+            <AText fontSize={14} style={{ marginTop: 5 }}>{translate(`transaction_form_type_${template.split.type}`)}</AText>
             <AText fontSize={14} style={{ marginTop: 5 }}>{template.split.amount ? `${template.split.amount} ${template.split.currencyCode}` : translate('quick_access_no_amount')}</AText>
             {!!template.split.sourceName && <AText fontSize={13}>{template.split.sourceName}</AText>}
           </Pressable>

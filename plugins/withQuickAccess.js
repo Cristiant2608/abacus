@@ -1,13 +1,23 @@
 const fs = require('fs');
 const path = require('path');
-const { withXcodeProject } = require('expo/config-plugins');
+const { withAppDelegate, withXcodeProject } = require('expo/config-plugins');
 const plist = require('@expo/plist').default;
 
 const TARGET_NAME = 'AbacusQuickAccessWidget';
 const SOURCE_DIR = 'AbacusQuickAccess';
 
 module.exports = function withQuickAccess(config) {
-  return withXcodeProject(config, (mod) => {
+  const configured = withAppDelegate(config, (mod) => {
+    const registration = 'AbacusQuickAccess.registerShortcuts()';
+    if (!mod.modResults.contents.includes(registration)) {
+      const anchor = 'let delegate = ReactNativeDelegate()';
+      if (!mod.modResults.contents.includes(anchor)) throw new Error('Cannot register App Shortcuts: unexpected AppDelegate template');
+      // eslint-disable-next-line no-param-reassign
+      mod.modResults.contents = mod.modResults.contents.replace(anchor, `${registration}\n    ${anchor}`);
+    }
+    return mod;
+  });
+  return withXcodeProject(configured, (mod) => {
     const project = mod.modResults;
     const directory = path.join(mod.modRequest.platformProjectRoot, SOURCE_DIR);
     fs.mkdirSync(directory, { recursive: true });
@@ -38,7 +48,7 @@ module.exports = function withQuickAccess(config) {
 
     // Expo regenerates the project on clean prebuild; repeated prebuild must
     // update the files/settings without inserting another native target.
-    let widget = project.pbxTargetByName(TARGET_NAME);
+    let widget = Object.values(project.pbxNativeTargetSection()).find((target) => typeof target === 'object' && target.name?.replace(/^"|"$/g, '') === TARGET_NAME);
     if (!widget) {
       const target = project.addTarget(TARGET_NAME, 'app_extension', TARGET_NAME, bundleIdentifier);
       project.addBuildPhase([], 'PBXSourcesBuildPhase', 'Sources', target.uuid);

@@ -9,16 +9,19 @@ import * as QuickActions from 'expo-quick-actions';
 import * as Crypto from 'expo-crypto';
 import { CommonActions, NavigationContainerRefWithCurrent } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { RootState } from '../store';
+import { RootState, store } from '../store';
 import translate from '../i18n/locale';
 import {
   canPresentQuickAccess, prepareExpense, QuickAccessQueue, quickAccessURL,
 } from './quick-access';
+import saveDirectMovement from './direct-movement';
+import directSession from './direct-session';
 
 export const quickAccessScheme = () => Linking.resolveScheme({ isSilent: true }) || 'abacusfiiiapp';
 
 export default function useQuickAccess(navigation: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>) {
   const queue = useRef(new QuickAccessQueue());
+  const saving = useRef(false);
   const [revision, setRevision] = useState(0);
   const templates = useSelector((state: RootState) => state.quickAccess.templates);
   const profileKey = useSelector((state: RootState) => state.quickAccess.profileKey);
@@ -47,7 +50,20 @@ export default function useQuickAccess(navigation: NavigationContainerRefWithCur
           // Consume atomically; overlapping native requests must drain in order.
           // eslint-disable-next-line no-await-in-loop
           const urls = await nativeModule.consumeRequests();
-          if (active && Array.isArray(urls)) urls.forEach((url) => { if (typeof url === 'string') receiveURL(url); });
+          if (active && Array.isArray(urls)) {
+            urls.forEach((record) => {
+              if (typeof record === 'string') { receiveURL(record); return; }
+              if (typeof record?.url !== 'string') return;
+              if (record.operation !== 'save') { receiveURL(record.url); return; }
+              try {
+                const current = navigation.isReady() ? navigation.getRootState() : null;
+                if (current?.routes[0]?.name === 'dashboard' && !canPresentQuickAccess(current.routes)) throw new Error('quick_access_busy');
+                if (queue.current.enqueueNativeSave(record.url, quickAccessScheme(), { requestId: record.requestId, expiresAt: record.expiresAt })) notifyNavigation();
+              } catch (error) {
+                nativeModule.completeSave(record.requestId, null, translate((error as Error).message));
+              }
+            });
+          }
         } while (active && drainAgain);
       } catch {
         // A later foreground event can retry a native bridge that is starting.
@@ -86,7 +102,7 @@ export default function useQuickAccess(navigation: NavigationContainerRefWithCur
     // The native catalogue contains names and IDs only; no credentials or amounts.
     // Keep the last authenticated catalogue during a cold start so App Intents
     // can resolve an already selected entity before JS finishes logging in.
-    if (loggedIn) NativeModules.AbacusQuickAccess?.setTemplates(JSON.stringify(current.map(({ id, name }) => ({ id, name }))));
+    if (loggedIn) NativeModules.AbacusQuickAccess?.setTemplates(JSON.stringify(current.map(({ id, name, split }) => ({ id, name, kind: split.type }))));
     QuickActions.setItems([
       {
         id: 'new-expense',
@@ -111,9 +127,32 @@ export default function useQuickAccess(navigation: NavigationContainerRefWithCur
 
   useEffect(() => {
     // Wait for login/biometrics and never replace an open transaction or modal.
-    if (!navigation.isReady() || !profileKey || !loggedIn || !canPresentQuickAccess(root.routes)) return;
+    if (saving.current || !navigation.isReady() || !profileKey || !loggedIn || !canPresentQuickAccess(root.routes)) return;
     const request = queue.current.shift();
     if (!request) return;
+    if (request.operation === 'save') {
+      const nativeModule = NativeModules.AbacusQuickAccess;
+      saving.current = true;
+      (async () => {
+        try {
+          const post = await directSession(profileKey);
+          const id = await saveDirectMovement(request, templates, profileKey, {
+            claim: (requestId) => nativeModule.claimSave(requestId),
+            currentProfile: () => store.getState().quickAccess.profileKey,
+            post,
+          });
+          nativeModule.completeSave(request.requestId, id, null);
+          store.dispatch.firefly.getNetWorth().catch(() => {});
+        } catch (error) {
+          const code = (error as Error).message;
+          nativeModule?.completeSave(request.requestId, null, translate(code.startsWith('quick_access_') ? code : 'quick_access_save_error'));
+        } finally {
+          saving.current = false;
+          notifyNavigation();
+        }
+      })();
+      return;
+    }
     try {
       navigation.dispatch(CommonActions.navigate({
         name: request.action === 'templates' ? 'QuickAccessScreen' : 'QuickExpenseScreen',
