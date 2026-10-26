@@ -1,0 +1,41 @@
+name: iOS personal validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/ios-personal-validation]
+    paths:
+      - .github/workflows/ios-personal.yml
+      - native/ios-probe/**
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      - name: Generate native validation project
+        working-directory: native/ios-probe
+        run: xcodegen generate
+      - name: Build unsigned app with WidgetKit and App Intents
+        run: >-
+          xcodebuild -project native/ios-probe/AbacusProbe.xcodeproj
+          -scheme AbacusProbe -configuration Release
+          -sdk iphoneos -destination 'generic/platform=iOS'
+          -derivedDataPath build/probe CODE_SIGNING_ALLOWED=NO build
+      - name: Package for local signing
+        run: |
+          mkdir -p build/package/Payload
+          cp -R build/probe/Build/Products/Release-iphoneos/AbacusProbe.app build/package/Payload/
+          cd build/package
+          zip -qr ../abacus-probe-unsigned.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: abacus-probe-unsigned
+          path: build/abacus-probe-unsigned.ipa
+          retention-days: 7
