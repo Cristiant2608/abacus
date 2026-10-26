@@ -20,8 +20,8 @@ function runtime(respond) {
     Request,
     Keychain: { contains: (key) => values.has(key), get: (key) => values.get(key), set: (key, value) => values.set(key, value), remove: (key) => values.delete(key) },
   });
-  vm.runInContext(`${fs.readFileSync('integrations/scriptable/abacus-widget.js', 'utf8')}\nglobalThis.api = {cachedSnapshot, fetchSnapshot, periodFor};`, context);
-  return { api: context.api, values, calls };
+  vm.runInContext(`${fs.readFileSync('integrations/scriptable/abacus-widget.js', 'utf8')}\nglobalThis.api = {cachedSnapshot, fetchSnapshot, periodFor, makeWidget};`, context);
+  return { api: context.api, context, values, calls };
 }
 
 const connection = { server: 'https://firefly.example', token: 'test-only' };
@@ -68,4 +68,49 @@ test('an incomplete page never replaces the last complete snapshot', async () =>
   });
   await assert.rejects(app.api.cachedSnapshot(connection, 'monthly'), /interrupted/);
   assert.equal(app.values.size, 0);
+});
+
+test('account widgets total active asset accounts separately for each currency', async () => {
+  const app = runtime(async () => ({ body: { data: [
+    { id: '1', attributes: { active: true, name: 'Bank', currency_code: 'USD', current_balance: '0.1' } },
+    { id: '2', attributes: { active: true, name: 'Cash', currency_code: 'USD', current_balance: '0.2' } },
+    { id: '3', attributes: { active: true, name: 'Euro', currency_code: 'EUR', current_balance: '5' } },
+    { id: '4', attributes: { active: false, name: 'Closed', currency_code: 'USD', current_balance: '100' } },
+  ], meta: { pagination: { total_pages: 1 } } } }));
+  const result = await app.api.fetchSnapshot(connection, 'accounts');
+  assert.equal(result.currencies.find((row) => row.currency === 'USD').balance, '0.3');
+  assert.equal(result.rows.length, 3);
+  assert.ok(app.calls[0].includes('type=asset'));
+});
+
+test('all widget modes render and privacy masks every monetary value', () => {
+  const app = runtime(async () => { throw new Error('not used'); });
+  app.context.ListWidget = class Widget {
+    constructor() { this.texts = []; }
+
+    setPadding() {}
+
+    addSpacer() {}
+
+    addText(value) { this.texts.push(value); return {}; }
+  };
+  app.context.Color = class Color {
+    static dynamic(light) { return light; }
+
+    static black() { return 'black'; }
+
+    static white() { return 'white'; }
+
+    static gray() { return 'gray'; }
+  };
+  app.context.Font = { boldSystemFont: () => ({}), systemFont: () => ({}) };
+  app.context.config = { widgetFamily: 'medium' };
+  const row = { currency: 'USD', income: '98765.4321', spent: '98765.4321', balance: '98765.4321', uncategorized: '98765.4321', categories: { Food: '98765.4321' } };
+  const state = { data: { currencies: [row], previous: [row], rows: [{ label: 'Bank', currency: 'USD', amount: '98765.4321' }], uncategorizedCount: 1, range: { start: '2026-10-01', end: '2026-10-26' } }, updatedAt: Date.now(), offline: true };
+  ['daily', 'monthly', 'yearly', 'categories', 'accounts', 'uncategorized', 'trend'].forEach((mode) => {
+    const widget = app.api.makeWidget({ ...connection, hidden: true }, mode, state);
+    assert.ok(widget.texts.some((value) => value.includes('••••')), mode);
+    assert.ok(widget.texts.some((value) => value.includes('Sin conexión')), mode);
+    assert.ok(!widget.texts.some((value) => value.includes('98765') || value.includes('98,765')), mode);
+  });
 });
