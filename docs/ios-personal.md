@@ -32,7 +32,9 @@ Los enlaces usan `abacus-personal://quick/expense?v=1` con `templateId`,
 abre la lista. Nunca deben incluir tokens ni credenciales. La acción nativa
 genera un identificador de solicitud para evitar aperturas duplicadas. Los
 enlaces esperan al inicio de sesión y a que se cierre cualquier formulario
-abierto. No se almacenan solicitudes pendientes al cerrar el proceso.
+abierto. Atajos entrega las solicitudes mediante una bandeja privada de la app,
+que se vacía al recibirlas en JavaScript. La cola de JavaScript se mantiene solo
+durante la sesión. No se requieren enlaces universales ni App Groups.
 
 ## Compilación
 

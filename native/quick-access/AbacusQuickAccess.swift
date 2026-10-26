@@ -2,10 +2,51 @@ import Foundation
 import AppIntents
 
 private let templateCatalogueKey = "AbacusExpenseTemplatesV1"
+private let inboxKey = "AbacusExpenseInboxV1"
+private let inboxNotification = Notification.Name("AbacusExpenseInboxChanged")
+
+private enum ExpenseInbox {
+    static let lock = NSLock()
+
+    static func append(_ url: URL) {
+        lock.lock()
+        let current = UserDefaults.standard.stringArray(forKey: inboxKey) ?? []
+        UserDefaults.standard.set(Array((current + [url.absoluteString]).suffix(5)), forKey: inboxKey)
+        lock.unlock()
+        NotificationCenter.default.post(name: inboxNotification, object: nil)
+    }
+
+    static func consume() -> [String] {
+        lock.lock()
+        defer { lock.unlock() }
+        let current = UserDefaults.standard.stringArray(forKey: inboxKey) ?? []
+        UserDefaults.standard.removeObject(forKey: inboxKey)
+        return current
+    }
+}
+
+#if canImport(React)
+import React
 
 @objc(AbacusQuickAccess)
-class AbacusQuickAccess: NSObject {
-    @objc static func requiresMainQueueSetup() -> Bool { false }
+class AbacusQuickAccess: RCTEventEmitter {
+    private var observer: NSObjectProtocol?
+
+    @objc override static func requiresMainQueueSetup() -> Bool { false }
+    override func supportedEvents() -> [String]! { ["AbacusQuickAccessRequest"] }
+    override func startObserving() {
+        observer = NotificationCenter.default.addObserver(forName: inboxNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.sendEvent(withName: "AbacusQuickAccessRequest", body: nil)
+        }
+    }
+    override func stopObserving() {
+        if let observer { NotificationCenter.default.removeObserver(observer) }
+        observer = nil
+    }
+
+    @objc func consumeRequests(_ resolve: RCTPromiseResolveBlock, rejecter reject: RCTPromiseRejectBlock) {
+        resolve(ExpenseInbox.consume())
+    }
 
     @objc func setTemplates(_ json: String) {
         guard let data = json.data(using: .utf8),
@@ -17,6 +58,7 @@ class AbacusQuickAccess: NSObject {
         }
     }
 }
+#endif
 
 private struct ExpenseTemplateRecord: Codable {
     let id: String
@@ -69,7 +111,7 @@ struct PrepareAbacusExpenseIntent: AppIntent {
         }
     }
 
-    func perform() async throws -> some IntentResult & OpensIntent {
+    func perform() async throws -> some IntentResult {
         var components = URLComponents(string: "__ABACUS_SCHEME__://quick/expense")!
         var items = [URLQueryItem(name: "v", value: "1"), URLQueryItem(name: "requestId", value: UUID().uuidString)]
         if let amount {
@@ -86,7 +128,11 @@ struct PrepareAbacusExpenseIntent: AppIntent {
         if let template { items.append(URLQueryItem(name: "templateId", value: template.id)) }
         components.queryItems = items
         components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
-        return .result(opensIntent: OpenURLIntent(components.url!))
+        // openAppWhenRun foregrounds the host app. OpenURLIntent only accepts
+        // universal links, so hand this request to React Native through the
+        // private inbox instead of requiring Associated Domains or App Groups.
+        ExpenseInbox.append(components.url!)
+        return .result()
     }
 }
 

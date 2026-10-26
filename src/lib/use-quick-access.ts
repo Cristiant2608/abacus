@@ -1,7 +1,9 @@
 import {
   useCallback, useEffect, useRef, useState,
 } from 'react';
-import { Alert, NativeModules, Platform } from 'react-native';
+import {
+  Alert, AppState, NativeEventEmitter, NativeModules, Platform,
+} from 'react-native';
 import * as Linking from 'expo-linking';
 import * as QuickActions from 'expo-quick-actions';
 import * as Crypto from 'expo-crypto';
@@ -30,6 +32,28 @@ export default function useQuickAccess(navigation: NavigationContainerRefWithCur
 
   useEffect(() => {
     let active = true;
+    let draining = false;
+    let drainAgain = false;
+    const nativeModule = NativeModules.AbacusQuickAccess;
+    const drainInbox = async () => {
+      if (!nativeModule?.consumeRequests) return;
+      if (draining) { drainAgain = true; return; }
+      draining = true;
+      try {
+        do {
+          drainAgain = false;
+          // Consume atomically; overlapping native requests must drain in order.
+          // eslint-disable-next-line no-await-in-loop
+          const urls = await nativeModule.consumeRequests();
+          if (active && Array.isArray(urls)) urls.forEach((url) => { if (typeof url === 'string') receiveURL(url); });
+        } while (active && drainAgain);
+      } catch {
+        // A later foreground event can retry a native bridge that is starting.
+      } finally { draining = false; }
+    };
+    const nativeSubscription = nativeModule ? new NativeEventEmitter(nativeModule).addListener('AbacusQuickAccessRequest', drainInbox) : null;
+    const foregroundSubscription = AppState.addEventListener('change', (state) => { if (state === 'active') drainInbox(); });
+    drainInbox();
     Linking.getInitialURL().then((url) => { if (active && url) receiveURL(url); }).catch(() => {});
     const linkSubscription = Linking.addEventListener('url', ({ url }) => receiveURL(url));
     const receiveAction = (action: QuickActions.Action) => {
@@ -45,6 +69,8 @@ export default function useQuickAccess(navigation: NavigationContainerRefWithCur
     const actionSubscription = QuickActions.addListener(receiveAction);
     return () => {
       active = false;
+      nativeSubscription?.remove();
+      foregroundSubscription.remove();
       linkSubscription.remove();
       actionSubscription.remove();
     };
