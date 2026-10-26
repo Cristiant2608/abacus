@@ -66,9 +66,11 @@ export default {
     policy: 'sdkVersion',
   },
   extra: {
-    ...(!IS_PERSONAL && { eas: {
-      projectId: '292ed6dc-804c-4444-95f5-fa5d76d9913b',
-    } }),
+    ...(!IS_PERSONAL && {
+      eas: {
+        projectId: '292ed6dc-804c-4444-95f5-fa5d76d9913b',
+      },
+    }),
   },
   plugins: [
     'expo-asset',

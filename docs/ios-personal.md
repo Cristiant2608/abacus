@@ -21,6 +21,11 @@ bash scripts/ios-personal-install.sh artifacts/abacus-personal-unsigned.ipa
 La nueva instalación requiere configurar Firefly de nuevo. Si se usa OAuth,
 registrar en Firefly la URL de retorno que muestre Abacus Personal.
 
+El trabajo nativo verifica el ejecutable, la identidad de la app y del widget,
+la URL de apertura y los metadatos compilados de App Intents antes de publicar
+el artefacto. La misma comprobación se puede ejecutar localmente con
+`python3 scripts/verify-ios-probe.py artifacts/abacus-probe-unsigned.ipa`.
+
 ## Firma e instalación local
 
 Descargar `xtool-x86_64.AppImage` desde la versión oficial 1.24.0 de

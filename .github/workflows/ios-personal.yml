@@ -35,6 +35,8 @@ jobs:
           cp -R build/probe/Build/Products/Release-iphoneos/AbacusProbe.app build/package/Payload/
           cd build/package
           zip -qr ../abacus-probe-unsigned.ipa Payload
+      - name: Verify embedded widget and App Intents metadata
+        run: python3 scripts/verify-ios-probe.py build/abacus-probe-unsigned.ipa
       - uses: actions/upload-artifact@v4
         with:
           name: abacus-probe-unsigned
