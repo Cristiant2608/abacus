@@ -1,7 +1,8 @@
 const IS_DEV = process.env.APP_VARIANT === 'development';
+const IS_PERSONAL = process.env.APP_VARIANT === 'personal';
 
 export default {
-  name: IS_DEV ? 'Abacus.dev' : 'Abacus',
+  name: IS_PERSONAL ? 'AbacusPersonal' : IS_DEV ? 'Abacus.dev' : 'Abacus',
   description: 'Abacus: Firefly III mobile application.',
   slug: 'abacus',
   privacy: 'public',
@@ -12,9 +13,9 @@ export default {
   version: '0.25.0',
   orientation: 'portrait',
   updates: {
-    enabled: true,
+    enabled: !IS_PERSONAL,
     checkAutomatically: 'ON_ERROR_RECOVERY',
-    url: 'https://u.expo.dev/292ed6dc-804c-4444-95f5-fa5d76d9913b',
+    ...(!IS_PERSONAL && { url: 'https://u.expo.dev/292ed6dc-804c-4444-95f5-fa5d76d9913b' }),
   },
   ios: {
     icon: './src/images/icon-abacus.png',
@@ -28,6 +29,7 @@ export default {
     },
     supportsTablet: true,
     infoPlist: {
+      ...(IS_PERSONAL && { CFBundleDisplayName: 'Abacus Personal' }),
       NSFaceIDUsageDescription: 'Abacus use Authentication with TouchId or FaceID',
       NSLocalNetworkUsageDescription: 'Abacus use Local Network to access Firefly III on your local network',
       NSAppTransportSecurity: {
@@ -37,7 +39,7 @@ export default {
     config: {
       usesNonExemptEncryption: false,
     },
-    bundleIdentifier: IS_DEV ? 'abacus.fireflyiii.ios.app.dev' : 'abacus.ios.app',
+    bundleIdentifier: IS_PERSONAL ? 'com.cristiant2608.abacus.personal' : IS_DEV ? 'abacus.fireflyiii.ios.app.dev' : 'abacus.ios.app',
     buildNumber: '0.25.0',
   },
   android: {
@@ -58,15 +60,15 @@ export default {
     package: IS_DEV ? 'abacus.fireflyiii.android.app.dev' : 'abacus.fireflyiii.android.app',
     versionCode: 41,
   },
-  scheme: 'abacusfiiiapp',
+  scheme: IS_PERSONAL ? 'abacus-personal' : 'abacusfiiiapp',
   githubUrl: 'https://github.com/victorbalssa/abacus',
   runtimeVersion: {
     policy: 'sdkVersion',
   },
   extra: {
-    eas: {
+    ...(!IS_PERSONAL && { eas: {
       projectId: '292ed6dc-804c-4444-95f5-fa5d76d9913b',
-    },
+    } }),
   },
   plugins: [
     'expo-asset',

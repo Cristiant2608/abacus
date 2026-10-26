@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/ios-personal.yml
       - native/ios-probe/**
+      - app.config.js
 
 permissions:
   contents: read
@@ -38,4 +39,40 @@ jobs:
         with:
           name: abacus-probe-unsigned
           path: build/abacus-probe-unsigned.ipa
+          retention-days: 7
+  abacus:
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      APP_VARIANT: personal
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Generate isolated personal app
+        run: npx expo prebuild --platform ios --no-install
+      - name: Install native dependencies
+        working-directory: ios
+        run: pod install
+      - name: Compile unsigned Abacus
+        run: >-
+          xcodebuild -workspace ios/AbacusPersonal.xcworkspace
+          -scheme AbacusPersonal -configuration Release
+          -sdk iphoneos -destination 'generic/platform=iOS'
+          -derivedDataPath build/abacus CODE_SIGNING_ALLOWED=NO build
+      - name: Package for local signing
+        run: |
+          mkdir -p build/abacus-package/Payload
+          cp -R build/abacus/Build/Products/Release-iphoneos/AbacusPersonal.app build/abacus-package/Payload/
+          cd build/abacus-package
+          zip -qr ../abacus-personal-unsigned.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: abacus-personal-unsigned
+          path: build/abacus-personal-unsigned.ipa
           retention-days: 7

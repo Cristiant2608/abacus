@@ -14,6 +14,7 @@ import * as Linking from 'expo-linking';
 import { useSelector } from 'react-redux';
 import { isValidHttpUrl, useThemeColors } from '../../lib/common';
 import translate from '../../i18n/locale';
+import { redirectUri } from '../../lib/oauth';
 import { RootState } from '../../store';
 import {
   AFormView,
@@ -28,8 +29,8 @@ import {
 } from '../UI/ALibrary';
 
 const copyToClipboard = async () => {
-  await Clipboard.setStringAsync('abacusfiiiapp://redirect');
-  Alert.alert('abacusfiiiapp://redirect copied to clipboard');
+  await Clipboard.setStringAsync(redirectUri);
+  Alert.alert(`${redirectUri} copied to clipboard`);
 };
 
 export default function OauthForm({
@@ -146,7 +147,7 @@ export default function OauthForm({
                 onPress={copyToClipboard}
               >
                 <Ionicons name="copy" size={12} color="white" style={{ margin: 5 }} />
-                <AText fontSize={13} numberOfLines={1} color="white" bold>abacusfiiiapp://redirect</AText>
+                <AText fontSize={13} numberOfLines={1} color="white" bold>{redirectUri}</AText>
               </APressable>
             </AStackFlex>
             <AFormView mx={0}>

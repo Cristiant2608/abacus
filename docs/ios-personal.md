@@ -10,6 +10,17 @@ Ejecutar manualmente `iOS personal validation` en el fork de GitHub. El runner
 macOS genera un IPA sin firmar; no recibe credenciales de Apple ni de Firefly.
 Descargar el artefacto `abacus-probe-unsigned` en `artifacts/`.
 
+El segundo trabajo compila la base React Native con `APP_VARIANT=personal` y
+produce `abacus-personal-unsigned`. Esta variante tiene identificador y esquema
+propios y las actualizaciones OTA originales desactivadas. Para instalarla:
+
+```bash
+bash scripts/ios-personal-install.sh artifacts/abacus-personal-unsigned.ipa
+```
+
+La nueva instalación requiere configurar Firefly de nuevo. Si se usa OAuth,
+registrar en Firefly la URL de retorno que muestre Abacus Personal.
+
 ## Firma e instalación local
 
 Descargar `xtool-x86_64.AppImage` desde la versión oficial 1.24.0 de
@@ -48,3 +59,10 @@ debe verificarse en el dispositivo antes de considerarse operativa.
 
 Referencias: [xtool](https://github.com/xtool-org/xtool),
 [límites de cuenta gratuita](https://developer.apple.com/help/account/basics/about-your-developer-account).
+
+## xcross
+
+Se revisó también <https://github.com/arxdeus/xcross>. La compilación de React
+Native sigue pendiente en <https://github.com/arxdeus/xcross/issues/21>; por eso
+no sustituye al runner macOS para este proyecto. No se instala Flutter ni se
+migra la aplicación a otro framework para esta prueba.
