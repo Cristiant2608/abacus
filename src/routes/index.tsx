@@ -46,6 +46,7 @@ import PrivacyScreen from '../components/UI/PrivacyScreen';
 import ErrorBoundary from '../components/UI/ErrorBoundary';
 import useQuickAccess from '../lib/use-quick-access';
 import QuickAccessScreen from '../components/Screens/QuickAccessScreen';
+import IntegrationsScreen from '../components/Screens/IntegrationsScreen';
 import QuickExpenseScreen from '../components/Screens/QuickExpenseScreen';
 import ExpenseTemplateScreen from '../components/Screens/ExpenseTemplateScreen';
 
@@ -366,6 +367,13 @@ export default function Index() {
             component={QuickAccessScreen}
             options={{
               headerShown: true, headerTitle: translate('quick_access_title'), headerLeft: HeaderClose, headerTintColor: colors.text, headerStyle: { backgroundColor: colors.tileBackgroundColor },
+            }}
+          />
+          <ModalStack.Screen
+            name="IntegrationsScreen"
+            component={IntegrationsScreen}
+            options={{
+              headerShown: true, headerTitle: translate('integrations_title'), headerLeft: HeaderClose, headerTintColor: colors.text, headerStyle: { backgroundColor: colors.tileBackgroundColor },
             }}
           />
           <ModalStack.Screen

@@ -34,6 +34,9 @@ export default function QuickAccessScreen({ navigation }: ScreenType) {
         <Ionicons name="add-circle" size={25} color="white" style={{ marginRight: 10 }} />
         <AText fontSize={18} color="white" bold>{translate('quick_access_new')}</AText>
       </AButton>
+      <Pressable accessibilityRole="button" style={buttonStyle} onPress={() => open('IntegrationsScreen')}>
+        <AText underline>{translate('integrations_title')}</AText>
+      </Pressable>
       <AText fontSize={20} bold style={{ marginVertical: 16 }}>{translate('quick_access_templates')}</AText>
       {current.length === 0 && <AText style={{ marginBottom: 16 }}>{translate('quick_access_empty')}</AText>}
       {current.map((template, index) => (

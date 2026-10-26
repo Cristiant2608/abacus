@@ -23,7 +23,7 @@ export const profileKeyFor = (backendURL: string, email: string) => JSON.stringi
 ]);
 
 export const canPresentQuickAccess = (routes: { name: string }[]) => routes[0]?.name === 'dashboard'
-  && routes.every(({ name }) => ['dashboard', 'QuickAccessScreen'].includes(name));
+  && routes.every(({ name }) => ['dashboard', 'QuickAccessScreen', 'IntegrationsScreen'].includes(name));
 
 export const normalizeExpenseAmount = (value: string): string => {
   const amount = value.trim().replace(',', '.');

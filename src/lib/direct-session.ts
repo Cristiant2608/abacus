@@ -1,12 +1,12 @@
 import axios from 'axios';
-import { refreshAsync } from 'expo-auth-session';
 import { store } from '../store';
 import { TCredential } from '../types/credential';
 import { profileKeyFor } from './quick-access';
 import {
-  discovery, getCredentials, isTokenFresh, replaceAccessToken,
+  getCredentials, isTokenFresh,
 } from './oauth';
 import transactionPayload from './transaction-payload';
+import refreshCredential from './refresh-credential';
 
 export default async function directSession(profileKey: string) {
   const authorization = String(axios.defaults.headers.Authorization || '');
@@ -17,19 +17,7 @@ export default async function directSession(profileKey: string) {
   if (!isTokenFresh(credential.accessTokenExpiresIn)) {
     if (!credential.refreshToken) throw new Error('quick_access_auth_required');
     const previous = credential;
-    const response = await refreshAsync({
-      clientId: previous.oauthClientId,
-      refreshToken: previous.refreshToken,
-      extraParams: { client_secret: previous.oauthClientSecret },
-    }, discovery(previous.backendURL));
-    if (!response.accessToken) throw new Error('quick_access_auth_required');
-    credential = {
-      ...previous,
-      accessToken: response.accessToken,
-      refreshToken: response.refreshToken || previous.refreshToken,
-      accessTokenExpiresIn: response.issuedAt && response.expiresIn ? String(response.issuedAt + response.expiresIn - 600) : '',
-    };
-    await replaceAccessToken(credential, previous.refreshToken);
+    credential = await refreshCredential(previous);
     // A refresh for one profile must not overwrite a session selected while
     // the network request was in flight.
     if (store.getState().quickAccess.profileKey === profileKey && String(axios.defaults.headers.Authorization || '') === authorization) {

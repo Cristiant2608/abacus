@@ -1,4 +1,7 @@
+import { improvementsEN, improvementsES } from './improvements';
+
 export const quickAccessEN = {
+  ...improvementsEN,
   quick_access_title: 'Quick access',
   quick_access_new: 'New transaction',
   quick_access_templates: 'Transaction templates',
@@ -34,6 +37,7 @@ export const quickAccessEN = {
 };
 
 export const quickAccessES = {
+  ...improvementsES,
   quick_access_title: 'Accesos rápidos',
   quick_access_new: 'Nuevo movimiento',
   quick_access_templates: 'Plantillas de movimientos',

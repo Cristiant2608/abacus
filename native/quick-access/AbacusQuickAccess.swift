@@ -104,6 +104,35 @@ private struct MovementExecutionError: LocalizedError {
     var errorDescription: String? { message }
 }
 
+import SwiftUI
+import UIKit
+
+@available(iOS 16.0, *)
+private struct AbacusShortcutsPage: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var diagnostic = ""
+    var body: some View {
+        VStack(spacing: 24) {
+            Text("Atajos de Abacus").font(.title2.bold())
+            Text("Preparar movimiento abre el formulario. Guardar movimiento usa una plantilla completa y espera la confirmación de Firefly.")
+            ShortcutsLink(action: { dismiss() })
+            Button("Comprobar registro") {
+                Task {
+                    if #available(iOS 17.2, *) {
+                        do {
+                            AbacusExpenseShortcuts.updateAppShortcutParameters()
+                            try await PrepareAbacusExpenseIntent().donate()
+                            diagnostic = "iOS aceptó la donación de la acción."
+                        } catch { diagnostic = error.localizedDescription }
+                    }
+                }
+            }
+            if !diagnostic.isEmpty { Text(diagnostic).font(.footnote).textSelection(.enabled) }
+            Button("Cerrar") { dismiss() }
+        }.padding(24)
+    }
+}
+
 #if canImport(React)
 import React
 
@@ -148,6 +177,20 @@ class AbacusQuickAccess: RCTEventEmitter {
               let sanitized = try? JSONEncoder().encode(Array(records.prefix(100))) else { return }
         UserDefaults.standard.set(sanitized, forKey: templateCatalogueKey)
         Self.registerShortcuts()
+    }
+
+    @objc func openShortcuts(_ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        DispatchQueue.main.async {
+            guard #available(iOS 17.2, *),
+                  let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+                  var presenter = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController else {
+                reject("shortcuts_unavailable", "No se pudo abrir la página de Atajos.", nil)
+                return
+            }
+            while let next = presenter.presentedViewController { presenter = next }
+            Self.registerShortcuts()
+            presenter.present(UIHostingController(rootView: AbacusShortcutsPage()), animated: true) { resolve(true) }
+        }
     }
 }
 #endif

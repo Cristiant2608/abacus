@@ -7,6 +7,7 @@ import { RootState } from '../../store';
 import ToastMessage from './ToastMessage';
 import translate from '../../i18n/locale';
 import useToasts from './useToasts';
+import apiError from '../../lib/api-error';
 
 export default function ErrorWidget() {
   const { showToast, toasts, removeToast } = useToasts();
@@ -29,7 +30,8 @@ export default function ErrorWidget() {
   useEffect(() => {
     (async () => {
       if (error && (error as Error).message && !isFirstRun.current) {
-        const message = (error as AxiosError<{ message?: string }>).response?.data?.message || (error as Error).message;
+        const normalized = apiError(error);
+        const message = [translate(normalized.key), normalized.details].filter(Boolean).join('\n');
         showToast(translate('error_widget_title'), message, 'error');
       }
 

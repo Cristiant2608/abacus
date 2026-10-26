@@ -12,6 +12,7 @@ on:
       - native/quick-access/**
       - plugins/withQuickAccess.js
       - scripts/**
+      - integrations/**
 
 permissions:
   contents: read
@@ -76,6 +77,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test:quick-access
+      - name: Verify standalone financial widgets
+        run: |
+          node scripts/generate-scriptable-widget.cjs --check
+          node scripts/test-scriptable-widget.cjs
       - run: npx tsc --noEmit
       - run: npm run lint
       - name: Generate isolated personal app

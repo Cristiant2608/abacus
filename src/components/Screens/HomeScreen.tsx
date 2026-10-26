@@ -44,6 +44,7 @@ import {
 import DisplayAllAccountsSwitch from '../UI/DisplayAllAccountsSwitch';
 import IncomeExpenseBar from '../UI/IncomeExpenseBar';
 import ErrorBoundary from '../UI/ErrorBoundary';
+import FinancialOverview from '../UI/FinancialOverview';
 
 const EXTRA_SCROLL_PADDING = 120;
 
@@ -717,6 +718,7 @@ export default function HomeScreen() {
   const gradientColors = colorScheme === 'light' ? lightSelectedColor : darkSelectedColor;
 
   const renderIcons = [
+    <Ionicons key="overview" name="grid" size={22} color={colors.text} />,
     <Ionicons key="wallet" name="wallet" size={22} color={colors.text} />,
     <Ionicons key="pricetag" name="pricetags" size={22} color={colors.text} />,
     <MaterialCommunityIcons key="progress-check" name="progress-check" size={22} color={colors.text} />,
@@ -821,6 +823,7 @@ export default function HomeScreen() {
                 },
               )}
             >
+              <FinancialOverview key="overview" />
               <AssetsAccounts key="1" />
               <InsightCategories key="2" />
               <InsightBudgets key="3" />

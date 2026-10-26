@@ -1,17 +1,18 @@
 import { createModel } from '@rematch/core';
 import moment from 'moment';
-import { exchangeCodeAsync, refreshAsync } from 'expo-auth-session';
+import { exchangeCodeAsync } from 'expo-auth-session';
 import { maxBy, minBy } from 'lodash';
 import semver from 'semver';
 import axios from 'axios';
 import {
-  discovery, redirectUri, addCredential, replaceAccessToken,
+  discovery, redirectUri, addCredential,
 } from '../lib/oauth';
 import colors from '../constants/colors';
 import { RootModel } from './index';
 import { generateRangeTitle } from '../lib/common';
 import { AccountType } from './accounts';
 import { TCredential } from '../types/credential';
+import refreshCredential from '../lib/refresh-credential';
 
 export type HomeDisplayType = {
   title: string;
@@ -401,33 +402,11 @@ export default createModel<RootModel>()({
     },
 
     async getFreshAccessToken(credential: TCredential): Promise<void> {
-      const response = await refreshAsync(
-        {
-          clientId: credential.oauthClientId,
-          refreshToken: credential.refreshToken,
-          extraParams: {
-            client_secret: credential.oauthClientSecret,
-          },
-        },
-        discovery(credential.backendURL),
-      );
-
-      if (!response.accessToken) {
-        throw new Error(
-          'Failed to get accessToken with the refresh token. Please restart the Sign In process.',
-        );
+      const previousAuthorization = String(axios.defaults.headers.Authorization || '');
+      const updated = await refreshCredential(credential);
+      if (String(axios.defaults.headers.Authorization || '') === previousAuthorization) {
+        axios.defaults.headers.Authorization = `Bearer ${updated.accessToken}`;
       }
-
-      const newCredential = { ...credential };
-      newCredential.accessToken = response.accessToken;
-      newCredential.refreshToken = response.refreshToken;
-      newCredential.accessTokenExpiresIn = response.issuedAt && response.expiresIn
-        ? (response.issuedAt + response.expiresIn + -600).toString()
-        : '';
-      await replaceAccessToken(newCredential, credential.refreshToken);
-
-      // set backend url and access token for this session
-      axios.defaults.headers.Authorization = `Bearer ${response.accessToken}`;
     },
 
     async getNewAccessToken(payload): Promise<void> {

@@ -7,6 +7,14 @@ de acciones en Atajos sigue pendiente de verificación en el dispositivo.
 
 ## Uso
 
+El inicio incluye ahora una pestaña **Resumen**: ingresos, gastos y flujo neto
+por divisa para el período seleccionado, gastos sin categoría y últimos
+movimientos. Las transferencias se excluyen del total de ingresos y gastos.
+Deslizar para actualizar solicita todas las páginas de Firefly; una descarga
+incompleta no sustituye la última captura completa de la misma sesión y cuenta.
+Los importes respetan la opción de ocultar saldos y los cálculos conservan los
+decimales como texto, incluidos los envíos de formularios normales.
+
 1. En Abacus Personal, abre Ajustes → Accesos rápidos.
 2. Pulsa Crear plantilla. El nombre es obligatorio; el importe puede quedar
    vacío para introducirlo al usarla. Cuenta, destino, categoría y presupuesto
@@ -26,6 +34,47 @@ Las plantillas se pueden editar, eliminar y ordenar. Los dos primeros accesos
 también aparecen al mantener pulsado el icono, junto a Nuevo movimiento y Accesos
 rápidos. Las plantillas pertenecen al servidor y usuario de Firefly activos;
 un enlace de otra cuenta no registra ni abre un gasto con datos de esa cuenta.
+
+### Widgets y automatizaciones
+
+En **Accesos rápidos → Widgets y automatizaciones** hay instrucciones del widget
+nativo, un botón oficial para abrir las acciones de Abacus en Atajos y una
+comprobación de donación de la acción. La donación no ejecuta ni guarda un gasto.
+Si iOS no enumera las acciones, un atajo con **URL → Abrir URL** y el enlace de
+una plantilla permite preparar el formulario; no guarda directamente.
+
+La misma pantalla permite copiar el código de un widget financiero independiente
+para **Scriptable**. Crear un script nuevo, pegar el código y ejecutarlo una vez
+para configurar la dirección del servidor y un token personal de Firefly.
+Esas credenciales se guardan en el llavero de Scriptable; el código copiado por
+Abacus no contiene su token. HTTPS es obligatorio salvo para direcciones privadas
+de la red local y nombres `.local`. No se requieren App Groups ni una cuenta de
+Apple de pago para esta integración. Scriptable debe instalarse por separado.
+
+Añadir un widget de Scriptable, elegir el script y usar como parámetro:
+
+| Parámetro | Información |
+| --- | --- |
+| `daily` | Gastos, ingresos y flujo neto de hoy |
+| `monthly` | Resumen del mes hasta hoy |
+| `yearly` | Resumen del año |
+| `accounts` | Saldos de las cuentas de activos, separados por divisa |
+| `categories` | Gastos mensuales por categoría |
+| `uncategorized` | Gastos del mes pendientes de clasificar |
+| `trend` | Mes actual frente a los mismos días del mes anterior |
+
+El menú del script permite ocultar los importes. Los widgets recorren todas las
+páginas y conservan solo capturas completas por período. Indican la hora de la
+última actualización y cuándo muestran datos guardados sin conexión. Un token
+revocado se muestra como error; cambiar la conexión borra las capturas anteriores.
+iOS decide cuándo actualizar: la frecuencia solicitada no garantiza actualización
+inmediata. Tocar el widget abre las plantillas de Abacus Personal.
+
+El código instalable está en `integrations/scriptable/abacus-widget.js`, generado
+desde la lógica de cálculos compartida y `runtime.js`. Después de cambiar estos
+archivos, ejecutar `node scripts/generate-scriptable-widget.cjs`. Comprobarlo con
+`node scripts/generate-scriptable-widget.cjs --check` y
+`node scripts/test-scriptable-widget.cjs`.
 
 Los enlaces usan `abacus-personal://quick/expense?v=1` con `templateId`,
 `amount`, `description`, `kind` y `requestId` opcionales. `kind` admite
