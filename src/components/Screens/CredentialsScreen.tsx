@@ -23,6 +23,7 @@ import { ScreenType } from '../../types/screen';
 import { RootDispatch, RootState } from '../../store';
 import AButton from '../UI/ALibrary/AButton';
 import ErrorBoundary from '../UI/ErrorBoundary';
+import { profileKeyFor } from '../../lib/quick-access';
 
 export default function CredentialsScreen({ navigation, route }: ScreenType) {
   const { colors } = useThemeColors();
@@ -62,6 +63,7 @@ export default function CredentialsScreen({ navigation, route }: ScreenType) {
         await dispatch.firefly.getFreshAccessToken(credential);
       }
 
+      dispatch.quickAccess.setProfile(profileKeyFor(currentBackendURL, credential.email));
       navigation.dispatch(CommonActions.reset({ index: 0, routes: [{ name: 'dashboard' }] }));
     } catch (e) {
       Alert.alert(translate('oauth_token_error_title'), e.message);

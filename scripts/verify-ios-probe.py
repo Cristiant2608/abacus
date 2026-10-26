@@ -2,13 +2,14 @@
 """Check the unsigned probe artifact before attempting local signing."""
 
 import json
+import argparse
 import plistlib
 import sys
 import zipfile
 from pathlib import PurePosixPath
 
 
-def verify(path):
+def verify(path, app_id="com.cristiant2608.abacus.probe", widget_id="com.cristiant2608.abacus.probe.widget", scheme="abacus-personal-probe"):
     with zipfile.ZipFile(path) as archive:
         names = set(archive.namelist())
         apps = [name for name in names if name.startswith("Payload/")
@@ -17,11 +18,11 @@ def verify(path):
             raise ValueError("Expected exactly one application in Payload")
         app_path = apps[0].removesuffix("Info.plist")
         app = plistlib.loads(archive.read(apps[0]))
-        if app["CFBundleIdentifier"] != "com.cristiant2608.abacus.probe":
+        if app["CFBundleIdentifier"] != app_id:
             raise ValueError("Unexpected app identity")
         schemes = [scheme for entry in app.get("CFBundleURLTypes", [])
                    for scheme in entry.get("CFBundleURLSchemes", [])]
-        if "abacus-personal-probe" not in schemes:
+        if scheme not in schemes:
             raise ValueError("Widget URL scheme is missing")
         if app_path + app["CFBundleExecutable"] not in names:
             raise ValueError("App executable is missing")
@@ -30,7 +31,7 @@ def verify(path):
         if len(widgets) != 1:
             raise ValueError("Expected one embedded widget extension")
         widget = plistlib.loads(archive.read(widgets[0]))
-        if widget["CFBundleIdentifier"] != app["CFBundleIdentifier"] + ".widget":
+        if widget["CFBundleIdentifier"] != widget_id:
             raise ValueError("Unexpected widget identity")
         if widget.get("NSExtension", {}).get("NSExtensionPointIdentifier") != "com.apple.widgetkit-extension":
             raise ValueError("WidgetKit extension declaration is missing")
@@ -46,9 +47,13 @@ def verify(path):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        sys.exit("Usage: python3 scripts/verify-ios-probe.py path/to/probe.ipa")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("ipa")
+    parser.add_argument("--app-id", default="com.cristiant2608.abacus.probe")
+    parser.add_argument("--widget-id", default="com.cristiant2608.abacus.probe.widget")
+    parser.add_argument("--scheme", default="abacus-personal-probe")
+    args = parser.parse_args()
     try:
-        print(json.dumps(verify(sys.argv[1]), indent=2))
+        print(json.dumps(verify(args.ipa, args.app_id, args.widget_id, args.scheme), indent=2))
     except (ValueError, KeyError, OSError, zipfile.BadZipFile, plistlib.InvalidFileException) as error:
         sys.exit(f"Invalid probe: {error}")

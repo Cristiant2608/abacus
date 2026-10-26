@@ -21,8 +21,8 @@ export default function ChartScreen() {
   const start = useSelector((state: RootState) => state.firefly.rangeDetails.start);
   const end = useSelector((state: RootState) => state.firefly.rangeDetails.end);
   const currentCode = useSelector((state: RootState) => state.currencies.currentCode);
-  const prevFiltersRef = useRef<string>();
-  const viewPagerRef = useRef<PagerView>();
+  const prevFiltersRef = useRef<string>(undefined);
+  const viewPagerRef = useRef<PagerView>(null);
   const scrollOffsetAnimatedValue = React.useRef(new Animated.Value(0)).current;
   const positionAnimatedValue = React.useRef(new Animated.Value(0)).current;
   const dispatch = useDispatch<RootDispatch>();

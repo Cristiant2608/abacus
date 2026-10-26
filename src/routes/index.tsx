@@ -8,7 +8,6 @@ import {
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
-  BottomTabBar,
   createBottomTabNavigator,
 } from '@react-navigation/bottom-tabs';
 import {
@@ -16,12 +15,9 @@ import {
   Foundation,
 } from '@expo/vector-icons';
 import {
-  StyleSheet, Platform, View, Pressable,
+  Platform, View, Pressable,
 } from 'react-native';
 import { useSelector } from 'react-redux';
-import {
-  useQuickActionCallback,
-} from 'expo-quick-actions/hooks';
 import { RootState } from '../store';
 import translate from '../i18n/locale';
 import { useThemeColors } from '../lib/common';
@@ -47,8 +43,11 @@ import {
   AText,
 } from '../components/UI/ALibrary';
 import PrivacyScreen from '../components/UI/PrivacyScreen';
-import { AbacusQuickAction } from '../types/quickAction';
 import ErrorBoundary from '../components/UI/ErrorBoundary';
+import useQuickAccess from '../lib/use-quick-access';
+import QuickAccessScreen from '../components/Screens/QuickAccessScreen';
+import QuickExpenseScreen from '../components/Screens/QuickExpenseScreen';
+import ExpenseTemplateScreen from '../components/Screens/ExpenseTemplateScreen';
 
 const Stack = createNativeStackNavigator();
 const TransactionStack = createNativeStackNavigator();
@@ -311,16 +310,12 @@ export default function Index() {
   const { colors } = useThemeColors();
   const navigationRef = useNavigationContainerRef();
 
-  useQuickActionCallback((action: AbacusQuickAction) => {
-    navigationRef.dispatch(
-      CommonActions.navigate({
-        name: action.params.href,
-      }),
-    );
-  });
+  const quickAccessNavigation = useQuickAccess(navigationRef);
 
   return (
     <NavigationContainer
+      onReady={quickAccessNavigation.onReady}
+      onStateChange={quickAccessNavigation.onStateChange}
       theme={{
         ...DefaultTheme,
         colors: {
@@ -366,6 +361,27 @@ export default function Index() {
             animation: 'slide_from_bottom',
           }}
         >
+          <ModalStack.Screen
+            name="QuickAccessScreen"
+            component={QuickAccessScreen}
+            options={{
+              headerShown: true, headerTitle: translate('quick_access_title'), headerLeft: HeaderClose, headerTintColor: colors.text, headerStyle: { backgroundColor: colors.tileBackgroundColor },
+            }}
+          />
+          <ModalStack.Screen
+            name="ExpenseTemplateScreen"
+            component={ExpenseTemplateScreen}
+            options={{
+              headerShown: true, headerTitle: translate('quick_access_templates'), headerLeft: HeaderClose, headerTintColor: colors.text, headerStyle: { backgroundColor: colors.tileBackgroundColor },
+            }}
+          />
+          <ModalStack.Screen
+            name="QuickExpenseScreen"
+            component={QuickExpenseScreen}
+            options={{
+              headerShown: true, headerTitle: translate('quick_access_new'), headerLeft: HeaderClose, headerTintColor: colors.text, headerStyle: { backgroundColor: colors.tileBackgroundColor },
+            }}
+          />
           <ModalStack.Screen
             name="TransactionCreateScreen"
             component={TransactionCreateScreen}

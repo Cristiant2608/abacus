@@ -37,7 +37,7 @@ export default function AButton({
   return (
     <Pressable
       testID={testID}
-      disabled={disabled}
+      disabled={disabled || loading}
       onPress={onPress}
       style={({ pressed }) => ({
         opacity: disabled && disabledTint ? 0.3 : 1,

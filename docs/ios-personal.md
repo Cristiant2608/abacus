@@ -1,12 +1,44 @@
-# Validación de iOS desde Linux
+# Abacus Personal desde Linux
 
-La primera fase comprueba que la cuenta gratuita puede firmar e instalar una app
-con WidgetKit y App Intents. No modifica la instalación de Abacus de la App Store
-ni conecta con Firefly. La integración completa depende de superar esta prueba.
+Versión personal de Abacus con plantillas, captura rápida, Atajos y widgets de
+iOS. Se instala junto a la app original y requiere configurar Firefly de nuevo.
+La prueba mínima de firma gratuita, widget y Atajos se completó en el iPhone
+conectado antes de integrar estas funciones en React Native.
+
+## Uso
+
+1. En Abacus Personal, abre Ajustes → Accesos rápidos.
+2. Pulsa Crear plantilla. El nombre es obligatorio; el importe puede quedar
+   vacío para introducirlo al usarla. Cuenta, destino, categoría y presupuesto
+   se rellenan con los mismos selectores de Firefly que las transacciones.
+3. Toca una plantilla para revisar el gasto. Los detalles adicionales están
+   plegados. La fecha es la actual y el gasto solo se envía al pulsar Guardar.
+4. En Atajos, añade la acción Preparar gasto de Abacus Personal. Selecciona una
+   plantilla y, si quieres, indica un importe o una descripción que sustituyan
+   los valores guardados. Abre la app e inicia sesión al menos una vez para que
+   las plantillas aparezcan en el selector del sistema.
+5. Para configurar un widget, pulsa Copiar enlace para widget en una plantilla.
+   Añade Captura rápida a la pantalla de inicio, edítalo y pega el enlace con un
+   nombre para el botón. El tamaño pequeño abre el primer acceso configurado
+   (Nuevo gasto por defecto). El mediano ofrece Nuevo gasto y hasta dos accesos.
+
+Las plantillas se pueden editar, eliminar y ordenar. Los dos primeros accesos
+también aparecen al mantener pulsado el icono, junto a Nuevo gasto y Accesos
+rápidos. Las plantillas pertenecen al servidor y usuario de Firefly activos;
+un enlace de otra cuenta no registra ni abre un gasto con datos de esa cuenta.
+
+Los enlaces usan `abacus-personal://quick/expense?v=1` con `templateId`,
+`amount`, `description` y `requestId` opcionales. La ruta `quick/templates?v=1`
+abre la lista. Nunca deben incluir tokens ni credenciales. La acción nativa
+genera un identificador de solicitud para evitar aperturas duplicadas. Los
+enlaces esperan al inicio de sesión y a que se cierre cualquier formulario
+abierto. No se almacenan solicitudes pendientes al cerrar el proceso.
 
 ## Compilación
 
-Ejecutar manualmente `iOS personal validation` en el fork de GitHub. El runner
+La rama `feat/ios-personal-validation` ejecuta `iOS personal validation` al subir
+cambios relevantes. Tras incorporar el workflow a la rama predeterminada también
+puede ejecutarse manualmente. El runner
 macOS genera un IPA sin firmar; no recibe credenciales de Apple ni de Firefly.
 Descargar el artefacto `abacus-probe-unsigned` en `artifacts/`.
 
@@ -36,9 +68,10 @@ Iniciar sesión desde una terminal propia (no introducir secretos en el chat):
 
 ```bash
 .tools/xtool.AppImage --appimage-extract-and-run auth login --mode password
-bash scripts/ios-personal-install.sh
+bash scripts/ios-personal-install.sh artifacts/abacus-probe-unsigned.ipa
 ```
 
+Para la versión completa, ejecutar `bash scripts/ios-personal-install.sh`.
 xtool firma el IPA usando la cuenta local y lo instala por USB. Puede solicitar
 elegir el equipo de desarrollo. Completar en el iPhone los pasos de confianza y
 Modo de desarrollador que solicite iOS. No enviar contraseñas a GitHub Actions.
@@ -54,6 +87,26 @@ Modo de desarrollador que solicite iOS. No enviar contraseñas a GitHub Actions.
 No se registra ningún gasto durante estas pruebas. Si falla la firma de una
 extensión o requiere una capacidad de pago, registrar el error y detener esta
 fase antes de implementar la integración completa.
+
+La compilación completa verifica también los identificadores, esquema, versión
+del widget y metadatos de App Intents de Abacus Personal. Los widgets no usan
+App Groups ni tienen acceso al token de Firefly; la selección de plantilla se
+resuelve dentro de la app después del inicio de sesión.
+
+## Comprobaciones de desarrollo
+
+```bash
+npm run test:quick-access
+npx tsc --noEmit
+npm run lint
+APP_VARIANT=personal npx expo prebuild --platform ios --no-install
+```
+
+La comprobación Swift aislada se ejecuta antes de compilar React Native para
+detectar pronto problemas con WidgetKit y App Intents. Las pruebas de lógica
+cubren parámetros malformados, importes con coma/punto, precisión, deduplicación,
+plantillas eliminadas y separación entre cuentas. Comprobar en el teléfono los
+arranques en frío y caliente, modo claro/oscuro, texto ampliado y VoiceOver.
 
 ## Renovación
 

@@ -8,6 +8,7 @@
     "debug": "open 'rndebugger://set-debugger-loc?host=localhost&port=19001'",
     "ios": "expo run:ios",
     "lint": "eslint --config .eslintrc.json .",
+    "test:quick-access": "jest --config jest.quick-access.config.js --runInBand",
     "lint-with-results": "eslint --config .eslintrc.json --format @microsoft/eslint-formatter-sarif --output-file eslint-results.sarif .",
     "start": "expo start --dev-client"
   },

@@ -1,8 +1,7 @@
 import React from 'react';
 import {
-  NativeSyntheticEvent,
   TextInput,
-  TextInputFocusEventData,
+  TextInputProps,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { AStyle } from './types';
@@ -21,8 +20,8 @@ type AInputType = {
   placeholder?: string
   value?: string
   onChangeText?: (text: string) => void
-  onFocus?: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void
-  onBlur?: (e: NativeSyntheticEvent<TextInputFocusEventData>) => void
+  onFocus?: TextInputProps['onFocus']
+  onBlur?: TextInputProps['onBlur']
   InputLeftElement?: React.ReactNode
   InputRightElement?: React.ReactNode
   textAlign?: 'left' | 'center' | 'right'

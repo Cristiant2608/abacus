@@ -125,6 +125,15 @@ export default function SettingsScreen({ navigation }: ScreenType) {
 
   return (
     <AScrollView>
+      <APressable
+        onPress={() => navigation.dispatch(CommonActions.navigate({ name: 'QuickAccessScreen' }))}
+        style={{
+          minHeight: 64, margin: 12, padding: 16, borderRadius: 16, backgroundColor: colors.tileBackgroundColor,
+        }}
+      >
+        <AText fontSize={18} bold>{translate('quick_access_title')}</AText>
+        <AText fontSize={13}>{translate('quick_access_templates')}</AText>
+      </APressable>
       <AText py={10} px={10} fontSize={18} bold>
         {translate('configuration_security')}
       </AText>

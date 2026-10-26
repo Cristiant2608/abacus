@@ -1,11 +1,11 @@
 import React, {
   useEffect,
   useLayoutEffect,
-  useMemo,
+  useRef,
   useState,
 } from 'react';
 import {
-  Keyboard, Platform, KeyboardAvoidingView, ScrollView, Switch, ActivityIndicator,
+  Alert, Keyboard, Platform, KeyboardAvoidingView, ScrollView, Switch, ActivityIndicator,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Haptics from 'expo-haptics';
@@ -13,7 +13,7 @@ import * as Crypto from 'expo-crypto';
 import { Ionicons } from '@expo/vector-icons';
 
 import TransactionSplitForm from '../Forms/TransactionSplitForm';
-import { RootDispatch, RootState } from '../../store';
+import { RootDispatch, RootState, store } from '../../store';
 import translate from '../../i18n/locale';
 import GroupTitle from './Fields/GroupTitle';
 
@@ -22,8 +22,11 @@ import { initialSplit } from '../../models/transactions';
 import { AStackFlex, AText, AView } from '../UI/ALibrary';
 import AButton from '../UI/ALibrary/AButton';
 import { useThemeColors } from '../../lib/common';
+import { normalizeExpenseAmount } from '../../lib/quick-access';
 
-function MultipleTransactionSplitForm({ isNew, splits, title }) {
+function MultipleTransactionSplitForm({
+  isNew, splits, title, quick = false,
+}) {
   const { colors } = useThemeColors();
   const displayForeignCurrency = useSelector((state: RootState) => state.configuration.displayForeignCurrency);
   const [splitNumber, setSplitNumber] = useState<string[]>([]);
@@ -62,28 +65,33 @@ function MultipleTransactionSplitForm({ isNew, splits, title }) {
           isNew={isNew}
           total={splitNumber.length}
           transaction={splits[i] || initialSplit()}
+          compact={quick}
           handleDelete={() => deleteTransactionSplit(i)}
         />
       ))}
-      <AButton
-        style={{
-          height: 40,
-          marginTop: 5,
-          borderWidth: 0.5,
-          borderColor: colors.listBorderColor,
-        }}
-        onPress={addTransactionSplit}
-      >
-        <AStackFlex row>
-          <Ionicons name="add-circle" size={22} color={colors.greyLight} style={{ margin: 5 }} />
-          <AText color={colors.greyLight} fontSize={15}>{translate('transaction_form_new_split_button')}</AText>
+      {!quick && (
+      <>
+        <AButton
+          style={{
+            height: 40,
+            marginTop: 5,
+            borderWidth: 0.5,
+            borderColor: colors.listBorderColor,
+          }}
+          onPress={addTransactionSplit}
+        >
+          <AStackFlex row>
+            <Ionicons name="add-circle" size={22} color={colors.greyLight} style={{ margin: 5 }} />
+            <AText color={colors.greyLight} fontSize={15}>{translate('transaction_form_new_split_button')}</AText>
+          </AStackFlex>
+        </AButton>
+        <GroupTitle title={title || ''} />
+        <AStackFlex row py={10} alignItems="center" justifyContent="space-between">
+          <AText color={colors.greyLight} fontSize={14} bold>{translate('transaction_form_foreign_currency_label')}</AText>
+          <Switch thumbColor="white" trackColor={{ false: '#767577', true: colors.brandStyle }} onValueChange={onSwitch} value={displayForeignCurrency} />
         </AStackFlex>
-      </AButton>
-      <GroupTitle title={title || ''} />
-      <AStackFlex row py={10} alignItems="center" justifyContent="space-between">
-        <AText color={colors.greyLight} fontSize={14} bold>{translate('transaction_form_foreign_currency_label')}</AText>
-        <Switch thumbColor="white" trackColor={{ false: '#767577', true: colors.brandStyle }} onValueChange={onSwitch} value={displayForeignCurrency} />
-      </AStackFlex>
+      </>
+      )}
     </AView>
   );
 }
@@ -106,26 +114,46 @@ export default function TransactionForm({
   title,
   splits = [],
   id = '-1',
+  quick = false,
 }) {
   const { colors } = useThemeColors();
   const dispatch = useDispatch<RootDispatch>();
   const loading = useSelector((state: RootState) => state.loading.effects.transactions.upsertTransaction?.loading);
   const closeTransactionScreen = useSelector((state: RootState) => state.configuration.closeTransactionScreen);
+  const submitting = useRef(false);
 
   useEffect(() => {
     dispatch.transactions.resetTransaction({ splits, title });
   }, []);
 
   const handleSubmit = async () => {
+    if (submitting.current) return;
     Keyboard.dismiss();
+    if (quick) {
+      const split = store.getState().transactions.transactionPayload?.transactions?.[0];
+      try {
+        normalizeExpenseAmount(split?.amount || '');
+        if (!split.description.trim() || (!split.sourceId && !split.sourceName.trim())) {
+          Alert.alert(translate('quick_access_required_fields'));
+          return;
+        }
+      } catch (error) {
+        Alert.alert(translate((error as Error).message));
+        return;
+      }
+    }
+    submitting.current = true;
     try {
       await dispatch.transactions.upsertTransaction({ id });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch();
-      if (closeTransactionScreen) {
+      if (closeTransactionScreen || quick) {
         navigation.goBack();
       }
     } catch (e) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch();
+      if (quick) Alert.alert(translate('quick_access_title'), translate('quick_access_save_error'));
+    } finally {
+      submitting.current = false;
     }
   };
 
@@ -137,25 +165,23 @@ export default function TransactionForm({
     });
   }, [navigation, dispatch, title, splits, id, loading]);
 
-  return useMemo(
-    () => (
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.select({ ios: 'padding', android: 'height' })}
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.select({ ios: 'padding', android: 'height' })}
+    >
+      <ScrollView
+        style={{
+          padding: 10,
+        }}
+        keyboardShouldPersistTaps="handled"
+        bounces={false}
       >
-        <ScrollView
-          style={{
-            padding: 10,
-          }}
-          keyboardShouldPersistTaps="handled"
-          bounces={false}
-        >
-          <MultipleTransactionSplitForm isNew={id === '-1'} title={title} splits={splits} />
-          <TransactionFormButtons handleSubmit={handleSubmit} />
-          <AView style={{ height: 170 }} />
-        </ScrollView>
-      </KeyboardAvoidingView>
-    ),
-    [],
+        {quick && <AText style={{ margin: 12 }} fontSize={14}>{translate('quick_access_review')}</AText>}
+        <MultipleTransactionSplitForm isNew={id === '-1'} title={title} splits={splits} quick={quick} />
+        <TransactionFormButtons handleSubmit={handleSubmit} />
+        <AView style={{ height: 170 }} />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

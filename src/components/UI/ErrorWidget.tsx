@@ -29,7 +29,7 @@ export default function ErrorWidget() {
   useEffect(() => {
     (async () => {
       if (error && (error as Error).message && !isFirstRun.current) {
-        const message = (error as AxiosError).response.data?.message ? (error as AxiosError).response.data?.message : (error as Error).message;
+        const message = (error as AxiosError<{ message?: string }>).response?.data?.message || (error as Error).message;
         showToast(translate('error_widget_title'), message, 'error');
       }
 

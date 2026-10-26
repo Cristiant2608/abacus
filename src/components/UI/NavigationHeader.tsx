@@ -62,34 +62,34 @@ export default function NavigationHeader({ navigation }): React.ReactNode {
           {range === 1 ? `${moment(start).format('MMMM D')} - ${moment(end).format('D')}` : `${moment(start).format('MMMM D')} - ${moment(end).format('MMMM D')}`}
         </AText>
         {(currentCode && range) ? (
-        <AStack row justifyContent="flex-start">
-          <View style={{
-            alignSelf: 'flex-start',
-            borderWidth: 0.7,
-            borderColor: colors.text,
-            borderRadius: 10,
-            paddingHorizontal: 5,
-            marginHorizontal: 1,
-          }}
-          >
-            <AText fontSize={10} lineHeight={12} bold>
-              {currentCode}
-            </AText>
-          </View>
-          <View style={{
-            alignSelf: 'flex-start',
-            borderWidth: 0.7,
-            borderColor: colors.text,
-            borderRadius: 10,
-            paddingHorizontal: 5,
-            marginHorizontal: 1,
-          }}
-          >
-            <AText fontSize={10} lineHeight={12} bold>
-              {`${range}M`}
-            </AText>
-          </View>
-        </AStack>
+          <AStack row justifyContent="flex-start">
+            <View style={{
+              alignSelf: 'flex-start',
+              borderWidth: 0.7,
+              borderColor: colors.text,
+              borderRadius: 10,
+              paddingHorizontal: 5,
+              marginHorizontal: 1,
+            }}
+            >
+              <AText fontSize={10} lineHeight={12} bold>
+                {currentCode}
+              </AText>
+            </View>
+            <View style={{
+              alignSelf: 'flex-start',
+              borderWidth: 0.7,
+              borderColor: colors.text,
+              borderRadius: 10,
+              paddingHorizontal: 5,
+              marginHorizontal: 1,
+            }}
+            >
+              <AText fontSize={10} lineHeight={12} bold>
+                {`${range}M`}
+              </AText>
+            </View>
+          </AStack>
         ) : null}
       </AStack>
 

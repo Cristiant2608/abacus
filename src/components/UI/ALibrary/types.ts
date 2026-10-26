@@ -1,10 +1,11 @@
-import { FlexAlignType } from 'react-native';
+import { DimensionValue, FlexAlignType } from 'react-native';
 
 export interface AStyle {
   flex?: number
   flexWrap?: 'wrap' | 'nowrap'
   display?: 'flex' | 'none'
-  height?: number | '100%' | '90%' | '80%' | '70%' | '60%' | '50%' | '150%'
+  height?: DimensionValue
+  minHeight?: DimensionValue
   width?: number | '100%' | '90%' | '80%' | '70%' | '60%' | '50%'
   margin?: number
   padding?: number

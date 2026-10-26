@@ -8,6 +8,10 @@ on:
       - .github/workflows/ios-personal.yml
       - native/ios-probe/**
       - app.config.js
+      - src/**
+      - native/quick-access/**
+      - plugins/withQuickAccess.js
+      - scripts/**
 
 permissions:
   contents: read
@@ -37,12 +41,17 @@ jobs:
           zip -qr ../abacus-probe-unsigned.ipa Payload
       - name: Verify embedded widget and App Intents metadata
         run: python3 scripts/verify-ios-probe.py build/abacus-probe-unsigned.ipa
+      - name: Check native integration before compiling React Native
+        run: |
+          xcodegen generate --spec native/quick-access/check.yml --project native/quick-access
+          xcodebuild -project native/quick-access/AbacusNativeCheck.xcodeproj -scheme AbacusNativeCheck -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build/native-check CODE_SIGNING_ALLOWED=NO build
       - uses: actions/upload-artifact@v4
         with:
           name: abacus-probe-unsigned
           path: build/abacus-probe-unsigned.ipa
           retention-days: 7
   abacus:
+    needs: probe
     runs-on: macos-15
     timeout-minutes: 60
     env:
@@ -56,6 +65,9 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      - run: npm run test:quick-access
+      - run: npx tsc --noEmit
+      - run: npm run lint
       - name: Generate isolated personal app
         run: npx expo prebuild --platform ios --no-install
       - name: Install native dependencies
@@ -73,6 +85,12 @@ jobs:
           cp -R build/abacus/Build/Products/Release-iphoneos/AbacusPersonal.app build/abacus-package/Payload/
           cd build/abacus-package
           zip -qr ../abacus-personal-unsigned.ipa Payload
+      - name: Verify personal app and extension
+        run: >-
+          python3 scripts/verify-ios-probe.py build/abacus-personal-unsigned.ipa
+          --app-id com.cristiant2608.abacus.personal
+          --widget-id com.cristiant2608.abacus.personal.quickaccess
+          --scheme abacus-personal
       - uses: actions/upload-artifact@v4
         with:
           name: abacus-personal-unsigned

@@ -2,6 +2,7 @@ import deDE from './de-DE';
 import 'moment/locale/de';
 
 import enUS from './en-US';
+import { quickAccessEN, quickAccessES } from './quick-access';
 
 import ptBR from './pt-BR';
 import 'moment/locale/pt';
@@ -44,10 +45,10 @@ import 'moment/locale/ja';
 
 export default {
   de: deDE,
-  en: enUS,
+  en: { ...enUS, ...quickAccessEN },
   pt: ptBR,
   fr: frFR,
-  es: esES,
+  es: { ...esES, ...quickAccessES },
   id: idID,
   zh: zhCN,
   it: itIT,

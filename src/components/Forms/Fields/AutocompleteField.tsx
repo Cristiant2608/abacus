@@ -17,7 +17,7 @@ import {
 
 type AutocompleteType = {
   name: string,
-  id: string,
+  id?: string,
 }
 
 export default function AutocompleteField({

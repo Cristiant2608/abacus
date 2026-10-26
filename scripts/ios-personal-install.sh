@@ -3,7 +3,7 @@ set -euo pipefail
 
 PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 XTOOL_BIN="${XTOOL_BIN:-$PROJECT_ROOT/.tools/xtool.AppImage}"
-IPA_PATH="${1:-$PROJECT_ROOT/artifacts/abacus-probe-unsigned.ipa}"
+IPA_PATH="${1:-$PROJECT_ROOT/artifacts/abacus-personal-unsigned.ipa}"
 
 if [[ ! -x "$XTOOL_BIN" ]]; then
   echo 'Falta xtool. Consulta docs/ios-personal.md.' >&2

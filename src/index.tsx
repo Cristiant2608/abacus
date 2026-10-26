@@ -1,10 +1,9 @@
 import React, { useEffect } from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/es/integration/react';
-import { Alert, LogBox, Platform } from 'react-native';
+import { Alert, LogBox } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as Device from 'expo-device';
-import * as QuickActions from 'expo-quick-actions';
 import * as Updates from 'expo-updates';
 import { loadAsync } from 'expo-font';
 
@@ -72,23 +71,8 @@ export default function App() {
     }
   };
 
-  const setQuickActions = () => {
-    QuickActions.setItems([
-      {
-        title: translate('transaction_screen_title'),
-        icon: Platform.select({
-          ios: 'symbol:plus.circle',
-          android: 'shortcut_add',
-        }),
-        id: 'create-transaction-shortcut',
-        params: { href: 'TransactionCreateScreen' },
-      },
-    ]);
-  };
-
   useEffect(() => {
     (async () => {
-      setQuickActions();
       await Promise.all([cache(), onCheckOTA()]);
     })();
   }, []);

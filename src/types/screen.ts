@@ -15,7 +15,9 @@ export interface NavigationType {
 export interface ScreenType {
   navigation: NavigationType;
   route?: {
+    key?: string;
     params?: {
+      templateId?: string;
       payload?: {
         url?: string
         splits?: TransactionSplitType[];

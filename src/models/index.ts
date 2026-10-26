@@ -8,8 +8,10 @@ import currencies from './currencies';
 import firefly from './firefly';
 import transactions from './transactions';
 import piggyBanks from './piggyBanks';
+import quickAccess from './quickAccess';
 
 export interface RootModel extends Models<RootModel> {
+  quickAccess: typeof quickAccess
   accounts: typeof accounts
   bills: typeof bills
   piggyBanks : typeof piggyBanks
@@ -22,6 +24,7 @@ export interface RootModel extends Models<RootModel> {
 }
 
 export const models: RootModel = {
+  quickAccess,
   accounts,
   bills,
   piggyBanks,

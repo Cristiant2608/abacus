@@ -339,7 +339,7 @@ export default function TransactionsScreen({ navigation, route }: ScreenType) {
     },
   } = useDispatch<RootDispatch>();
 
-  const searchBarRef = React.useRef<SearchBarCommands>();
+  const searchBarRef = React.useRef<SearchBarCommands>(null);
   const onLoadMore = async () => {
     const payload: GetTransactionsPayload = {
       start,

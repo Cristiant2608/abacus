@@ -28,6 +28,10 @@
   },
   "overrides": [
     {
+      "files": ["*.js"],
+      "parserOptions": { "project": null }
+    },
+    {
       "files": [
         "**/*.ts",
         "**/*.tsx"

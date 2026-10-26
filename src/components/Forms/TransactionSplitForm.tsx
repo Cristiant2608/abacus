@@ -29,6 +29,8 @@ export default function TransactionSplitForm({
   isNew,
   handleDelete,
   transaction,
+  onChange = null,
+  compact = false,
 }) {
   const [locale] = getLocales();
   const displayForeignCurrency = useSelector((state: RootState) => state.configuration.displayForeignCurrency);
@@ -37,15 +39,21 @@ export default function TransactionSplitForm({
   const [formData, setData] = useState<TransactionSplitType>({
     ...transaction,
     date: new Date(transaction.date),
-    amount: transaction.amount ? parseFloat(transaction.amount).toFixed(2) : '',
-    foreignAmount: transaction.foreignAmount ? parseFloat(transaction.foreignAmount).toFixed(2) : '',
+    amount: transaction.amount ? String(transaction.amount).replace(',', '.') : '',
+    foreignAmount: transaction.foreignAmount ? String(transaction.foreignAmount).replace(',', '.') : '',
   });
   const [showDatePicker, setShowDatePicker] = useState(Platform.OS === 'ios');
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showDetails, setShowDetails] = useState(!compact);
+
+  const commit = (data: TransactionSplitType) => {
+    if (onChange) onChange(data);
+    else dispatch.transactions.setTransactionSplitByIndex(index, data);
+  };
 
   const setTransaction = (data: TransactionSplitType) => {
     setData(data);
-    dispatch.transactions.setTransactionSplitByIndex(index, data);
+    commit(data);
   };
 
   const resetTransaction = (fields: string[]) => {
@@ -57,7 +65,7 @@ export default function TransactionSplitForm({
           return acc;
         }, {}),
       };
-      dispatch.transactions.setTransactionSplitByIndex(index, newSplit);
+      commit(newSplit);
       return newSplit;
     });
   };
@@ -68,7 +76,7 @@ export default function TransactionSplitForm({
         ...split,
         tags: split.tags.filter((tag) => tag !== item),
       };
-      dispatch.transactions.setTransactionSplitByIndex(index, newSplit);
+      commit(newSplit);
       return newSplit;
     });
   };
@@ -129,7 +137,7 @@ export default function TransactionSplitForm({
           />
         </AStack>
       )}
-      {isNew && (
+      {isNew && !compact && (
       <AFormView>
         <AStack style={{ width: '100%' }} row>
           {types.map(({ type, keyName }, i) => (
@@ -186,7 +194,7 @@ export default function TransactionSplitForm({
         />
       </AFormView>
 
-      {displayForeignCurrency && (
+      {displayForeignCurrency && showDetails && (
       <AFormView>
         <ALabel>
           {translate('transaction_form_foreign_amount_label')}
@@ -218,6 +226,7 @@ export default function TransactionSplitForm({
       </AFormView>
       )}
 
+      {showDetails && (
       <AFormView>
         <ALabel isRequired>
           {translate('transaction_form_date_label')}
@@ -286,6 +295,7 @@ export default function TransactionSplitForm({
           )}
         </AStack>
       </AFormView>
+      )}
 
       <AutocompleteField
         isRequired
@@ -315,6 +325,9 @@ export default function TransactionSplitForm({
         onChangeText={(value: string) => setTransaction({
           ...formData,
           sourceName: value,
+          sourceId: undefined,
+          currencyCode: '',
+          currencySymbol: '',
         })}
         onSelectAutocomplete={(autocomplete) => setTransaction({
           ...formData,
@@ -323,7 +336,7 @@ export default function TransactionSplitForm({
           currencyCode: autocomplete.currencyCode,
           currencySymbol: autocomplete.currencySymbol,
         })}
-        InputRightElement={deleteBtn(['sourceName', 'currencyCode', 'currencySymbol'])}
+        InputRightElement={deleteBtn(['sourceId', 'sourceName', 'currencyCode', 'currencySymbol'])}
         routeApi="accounts"
       />
 
@@ -337,13 +350,14 @@ export default function TransactionSplitForm({
         onChangeText={(value) => setTransaction({
           ...formData,
           destinationName: value,
+          destinationId: undefined,
         })}
         onSelectAutocomplete={(autocomplete) => setTransaction({
           ...formData,
           destinationName: autocomplete.name,
           destinationId: autocomplete.id,
         })}
-        InputRightElement={deleteBtn(['destinationName'])}
+        InputRightElement={deleteBtn(['destinationId', 'destinationName'])}
         routeApi="accounts"
       />
 
@@ -354,6 +368,7 @@ export default function TransactionSplitForm({
         onChangeText={(value) => setTransaction({
           ...formData,
           categoryName: value,
+          categoryId: '',
         })}
         onSelectAutocomplete={(autocomplete) => setTransaction({
           ...formData,
@@ -364,109 +379,125 @@ export default function TransactionSplitForm({
         routeApi="categories"
       />
 
-      <AutocompleteField
-        label={translate('transaction_form_budget_label')}
-        placeholder={translate('transaction_form_budget_label')}
-        value={formData.budgetName}
-        onChangeText={(value: string) => setTransaction({
-          ...formData,
-          budgetName: value,
-        })}
-        onSelectAutocomplete={(autocomplete) => setTransaction({
-          ...formData,
-          budgetId: autocomplete.id,
-          budgetName: autocomplete.name,
-        })}
-        InputRightElement={deleteBtn(['budgetId', 'budgetName'])}
-        routeApi="budgets"
-      />
-
-      <AutocompleteField
-        label={translate('transaction_form_bill_label')}
-        placeholder={translate('transaction_form_bill_label')}
-        value={formData.billName}
-        onChangeText={(value: string) => setTransaction({
-          ...formData,
-          billName: value,
-        })}
-        onSelectAutocomplete={(autocomplete) => setTransaction({
-          ...formData,
-          billId: autocomplete.id,
-          billName: autocomplete.name,
-        })}
-        InputRightElement={deleteBtn(['billId', 'billName'])}
-        routeApi="bills"
-      />
-
-      <AutocompleteField
-        multiple
-        label={translate('transaction_form_tags_label')}
-        placeholder={translate('transaction_form_tags_label')}
-        value={formData.tags}
-        onChangeText={() => {}}
-        onDeleteMultiple={resetTagTransaction}
-        onSelectAutocomplete={(autocomplete) => setTransaction({
-          ...formData,
-          tags: Array.from(new Set([...formData.tags, autocomplete.name])),
-        })}
-        routeApi="tags"
-      />
-
-      <AFormView>
-        <ALabel>
-          {translate('transaction_form_notes_label')}
-        </ALabel>
-        <AInput
-          height={60}
-          numberOfLines={3}
-          value={formData.notes}
-          onChangeText={(value) => setTransaction({
+      {compact && (
+        <AButton
+          style={{
+            height: 'auto', minHeight: 48, margin: 10, padding: 12,
+          }}
+          onPress={() => setShowDetails(!showDetails)}
+        >
+          <AText bold>{translate(showDetails ? 'quick_access_less' : 'quick_access_details')}</AText>
+        </AButton>
+      )}
+      {showDetails && (
+      <>
+        <AutocompleteField
+          label={translate('transaction_form_budget_label')}
+          placeholder={translate('transaction_form_budget_label')}
+          value={formData.budgetName}
+          onChangeText={(value: string) => setTransaction({
             ...formData,
-            notes: value,
-          })}
-          placeholder={translate('transaction_form_notes_label')}
-          InputRightElement={deleteBtn(['notes'])}
-        />
-      </AFormView>
-
-      <AButton
-        style={{
-          height: 40,
-          marginTop: 15,
-          marginHorizontal: 10,
-          borderWidth: 0.5,
-          borderColor: colors.listBorderColor,
-        }}
-        onPress={() => {
-          setTransaction({
-            date: new Date(),
-            sourceName: '',
-            sourceId: null,
-            destinationName: '',
-            destinationId: null,
-            description: '',
-            amount: '',
-            type: 'withdrawal',
+            budgetName: value,
             budgetId: '',
-            budgetName: '',
-            tags: [],
-            categoryId: '',
-            categoryName: '',
-            foreignAmount: '',
-            foreignCurrencyId: '',
-            notes: '',
-            currencySymbol: '',
-            currencyCode: '',
+          })}
+          onSelectAutocomplete={(autocomplete) => setTransaction({
+            ...formData,
+            budgetId: autocomplete.id,
+            budgetName: autocomplete.name,
+          })}
+          InputRightElement={deleteBtn(['budgetId', 'budgetName'])}
+          routeApi="budgets"
+        />
+
+        <AutocompleteField
+          label={translate('transaction_form_bill_label')}
+          placeholder={translate('transaction_form_bill_label')}
+          value={formData.billName}
+          onChangeText={(value: string) => setTransaction({
+            ...formData,
+            billName: value,
             billId: '',
-            billName: '',
-          });
-        }}
-      >
-        <AStackFlex row>
-          <AntDesign name="close-circle" size={18} color={colors.greyLight} style={{ margin: 5 }} />
-          <AText fontSize={15} color={colors.greyLight}>{translate('transaction_form_reset_button')}</AText>
-        </AStackFlex>
-      </AButton>
+          })}
+          onSelectAutocomplete={(autocomplete) => setTransaction({
+            ...formData,
+            billId: autocomplete.id,
+            billName: autocomplete.name,
+          })}
+          InputRightElement={deleteBtn(['billId', 'billName'])}
+          routeApi="bills"
+        />
+
+        <AutocompleteField
+          multiple
+          label={translate('transaction_form_tags_label')}
+          placeholder={translate('transaction_form_tags_label')}
+          value={formData.tags}
+          onChangeText={() => {}}
+          onDeleteMultiple={resetTagTransaction}
+          onSelectAutocomplete={(autocomplete) => setTransaction({
+            ...formData,
+            tags: Array.from(new Set([...formData.tags, autocomplete.name])),
+          })}
+          routeApi="tags"
+        />
+
+        <AFormView>
+          <ALabel>
+            {translate('transaction_form_notes_label')}
+          </ALabel>
+          <AInput
+            height={60}
+            numberOfLines={3}
+            value={formData.notes}
+            onChangeText={(value) => setTransaction({
+              ...formData,
+              notes: value,
+            })}
+            placeholder={translate('transaction_form_notes_label')}
+            InputRightElement={deleteBtn(['notes'])}
+          />
+        </AFormView>
+
+        <AButton
+          style={{
+            height: 40,
+            marginTop: 15,
+            marginHorizontal: 10,
+            borderWidth: 0.5,
+            borderColor: colors.listBorderColor,
+          }}
+          onPress={() => {
+            setTransaction({
+              date: new Date(),
+              sourceName: '',
+              sourceId: null,
+              destinationName: '',
+              destinationId: null,
+              description: '',
+              amount: '',
+              type: 'withdrawal',
+              budgetId: '',
+              budgetName: '',
+              tags: [],
+              categoryId: '',
+              categoryName: '',
+              foreignAmount: '',
+              foreignCurrencyId: '',
+              notes: '',
+              currencySymbol: '',
+              currencyCode: '',
+              billId: '',
+              billName: '',
+            });
+          }}
+        >
+          <AStackFlex row>
+            <AntDesign name="close-circle" size={18} color={colors.greyLight} style={{ margin: 5 }} />
+            <AText fontSize={15} color={colors.greyLight}>{translate('transaction_form_reset_button')}</AText>
+          </AStackFlex>
+        </AButton>
+      </>
+      )}
     </AStack>
   );
 }
