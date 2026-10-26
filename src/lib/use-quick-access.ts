@@ -56,7 +56,9 @@ export default function useQuickAccess(navigation: NavigationContainerRefWithCur
   useEffect(() => {
     const current = loggedIn ? templates.filter((item) => item.profileKey === profileKey) : [];
     // The native catalogue contains names and IDs only; no credentials or amounts.
-    NativeModules.AbacusQuickAccess?.setTemplates(JSON.stringify(current.map(({ id, name }) => ({ id, name }))));
+    // Keep the last authenticated catalogue during a cold start so App Intents
+    // can resolve an already selected entity before JS finishes logging in.
+    if (loggedIn) NativeModules.AbacusQuickAccess?.setTemplates(JSON.stringify(current.map(({ id, name }) => ({ id, name }))));
     QuickActions.setItems([
       {
         id: 'new-expense',

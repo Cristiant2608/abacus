@@ -18,11 +18,13 @@ import translate from '../../i18n/locale';
 import GroupTitle from './Fields/GroupTitle';
 
 import Loading from '../UI/Loading';
-import { initialSplit } from '../../models/transactions';
+import { initialSplit, TransactionSplitType } from '../../models/transactions';
 import { AStackFlex, AText, AView } from '../UI/ALibrary';
 import AButton from '../UI/ALibrary/AButton';
 import { useThemeColors } from '../../lib/common';
 import { normalizeExpenseAmount } from '../../lib/quick-access';
+
+const EMPTY_SPLITS: TransactionSplitType[] = [];
 
 function MultipleTransactionSplitForm({
   isNew, splits, title, quick = false,
@@ -112,7 +114,7 @@ function TransactionFormButtons({ handleSubmit }) {
 export default function TransactionForm({
   navigation,
   title,
-  splits = [],
+  splits = EMPTY_SPLITS,
   id = '-1',
   quick = false,
 }) {

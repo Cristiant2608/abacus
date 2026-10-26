@@ -29,10 +29,12 @@ type AInputType = {
   numberOfLines?: number
   style?: AStyle
   testID?: string
+  accessibilityLabel?: string
 }
 
 export default function AInput({
   testID = null,
+  accessibilityLabel,
   height = 35,
   bold = false,
   type = 'text',
@@ -85,10 +87,11 @@ export default function AInput({
         testID={testID}
         multiline={numberOfLines > 1}
         accessible
+        accessibilityLabel={accessibilityLabel || placeholder}
         secureTextEntry={type === 'password'}
         style={{
           flex: 1,
-          height,
+          minHeight: height,
           fontSize,
           textAlign,
           fontFamily: bold ? 'Montserrat-Bold' : 'Montserrat-Regular',

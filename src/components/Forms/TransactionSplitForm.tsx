@@ -57,28 +57,17 @@ export default function TransactionSplitForm({
   };
 
   const resetTransaction = (fields: string[]) => {
-    setData((split: TransactionSplitType) => {
-      const newSplit = {
-        ...split,
-        ...fields.reduce((acc, curr) => {
-          acc[curr] = '';
-          return acc;
-        }, {}),
-      };
-      commit(newSplit);
-      return newSplit;
+    setTransaction({
+      ...formData,
+      ...fields.reduce((acc, curr) => {
+        acc[curr] = '';
+        return acc;
+      }, {}),
     });
   };
 
   const resetTagTransaction = (item: string) => {
-    setData((split: TransactionSplitType) => {
-      const newSplit = {
-        ...split,
-        tags: split.tags.filter((tag) => tag !== item),
-      };
-      commit(newSplit);
-      return newSplit;
-    });
+    setTransaction({ ...formData, tags: formData.tags.filter((tag) => tag !== item) });
   };
 
   const colorItemTypes = {
@@ -183,6 +172,7 @@ export default function TransactionSplitForm({
           returnKeyType="done"
           keyboardType="decimal-pad"
           placeholder="0.00"
+          accessibilityLabel={translate('transaction_form_amount_label')}
           value={formData.amount}
           fontSize={35}
           onChangeText={(value) => setTransaction({
