@@ -103,7 +103,7 @@ Firefly antes de repetir. Los widgets y enlaces siempre preparan el formulario.
 La rama `feat/ios-personal-validation` ejecuta `iOS personal validation` al subir
 cambios relevantes. Tras incorporar el workflow a la rama predeterminada también
 puede ejecutarse manualmente. El runner
-macOS 26 genera un IPA sin firmar; no recibe credenciales de Apple ni de Firefly.
+macOS con Xcode actualizado genera un IPA sin firmar; no recibe credenciales de Apple ni de Firefly.
 Descargar el artefacto `abacus-probe-unsigned` en `artifacts/`.
 
 El segundo trabajo compila la base React Native con `APP_VARIANT=personal` y

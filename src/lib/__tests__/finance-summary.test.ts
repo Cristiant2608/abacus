@@ -55,6 +55,25 @@ test('fetches every page including more than 500 records', async () => {
   expect(load).toHaveBeenCalledTimes(6);
 });
 
+test('formats exactly with Hermes iOS limitations: no formatToParts or Intl BigInt support', () => {
+  const Original = Intl.NumberFormat;
+  const spy = jest.spyOn(Intl, 'NumberFormat').mockImplementation((locale, options) => {
+    const formatter = new Original(locale, options);
+    return {
+      format: (value: number) => {
+        if (typeof value !== 'number') throw new Error('Intl BigInt unsupported');
+        return formatter.format(value);
+      },
+      resolvedOptions: () => formatter.resolvedOptions(),
+    } as Intl.NumberFormat;
+  });
+  try {
+    expect(formatExactMoney('USD', '9007199254740993.00000001', 'en-US')).toBe('USD 9,007,199,254,740,993.00000001');
+    expect(formatExactMoney('INR', '123456789.12', 'en-IN')).toBe('INR 12,34,56,789.12');
+    expect(formatExactMoney('EUR', '-123456789.1', 'es-ES')).toBe('EUR -123.456.789,10');
+  } finally { spy.mockRestore(); }
+});
+
 test('does not return a partial snapshot after a page fails or pagination is missing', async () => {
   await expect(fetchEveryPage(async (page) => {
     if (page === 2) throw new Error('network');

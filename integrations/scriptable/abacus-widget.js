@@ -67,8 +67,24 @@ function formatExactMoney(currency, value, locale = 'es-CO') {
     const [integer, fraction = ''] = normalized.replace(/^-/, '').split('.');
     const decimals = new Intl.NumberFormat(locale, { style: 'currency', currency }).resolvedOptions().minimumFractionDigits;
     const formattedFraction = fraction.padEnd(decimals, '0');
-    const separator = new Intl.NumberFormat(locale).formatToParts(1.1).find((part) => part.type === 'decimal')?.value || '.';
-    const grouped = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(BigInt(integer));
+    // Hermes on iOS lacks formatToParts and may coerce BigInt through a double.
+    // Ask Intl only about small samples, then group the original decimal text.
+    const options = { numberingSystem: 'latn' };
+    const separator = new Intl.NumberFormat(locale, { ...options, useGrouping: false }).format(1.1).replace(/[0-9]/g, '') || '.';
+    const sample = new Intl.NumberFormat(locale, { ...options, maximumFractionDigits: 0 }).format(123456789);
+    const chunks = sample.split(/[^0-9]+/).filter(Boolean);
+    const groupSeparator = sample.replace(/[0-9]/g, '').slice(0, 1);
+    const groups = [];
+    let position = integer.length;
+    let size = chunks[chunks.length - 1]?.length || 3;
+    const secondary = chunks[chunks.length - 2]?.length || size;
+    while (position > 0) {
+        const start = Math.max(0, position - size);
+        groups.unshift(integer.slice(start, position));
+        position = start;
+        size = secondary;
+    }
+    const grouped = groupSeparator ? groups.join(groupSeparator) : integer;
     return `${currency} ${normalized.startsWith('-') ? '-' : ''}${grouped}${formattedFraction ? separator + formattedFraction : ''}`;
 }
 async function fetchEveryPage(load) {

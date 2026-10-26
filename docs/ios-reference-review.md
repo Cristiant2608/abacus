@@ -71,3 +71,18 @@ La migración a SwiftUI, iCloud y la monetización quedan fuera de esta mejora.
 4. Mejorar la pantalla de inicio y los errores de API a partir de las referencias,
    manteniendo React Native y coordinando los cambios de caché/interfaz que ya
    existen en el árbol de trabajo.
+
+## Implementación incorporada
+
+La rama incorpora un resumen por divisa con últimos movimientos y gastos sin
+categoría; widgets independientes de Scriptable para los siete modos descritos
+en la guía; configuración desde Accesos rápidos; apertura oficial de la galería
+de Atajos y donación de diagnóstico; errores de API normalizados; importes de
+formularios enviados como cadenas decimales; y renovación de tokens compartida
+entre solicitudes simultáneas. No se ha copiado código de los repositorios.
+
+Los widgets de Scriptable comparten la lógica probada de cálculos y paginación
+con Abacus. Las credenciales se configuran por separado y se guardan en el
+llavero de Scriptable. El registro de App Intents requiere todavía validación
+física: una compilación y unos metadatos correctos no bastan para declararlo
+resuelto. La guía de uso está en [ios-personal.md](ios-personal.md).
