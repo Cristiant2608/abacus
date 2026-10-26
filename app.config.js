@@ -1,5 +1,9 @@
 const IS_DEV = process.env.APP_VARIANT === 'development';
 const IS_PERSONAL = process.env.APP_VARIANT === 'personal';
+// xtool normalizes existing XTL prefixes to the current signing identity.
+// Compile with the final identifier so App Intents' generated metadata agrees
+// with the identifier installed on the device.
+const PERSONAL_APP_IDENTIFIER = process.env.PERSONAL_APP_IDENTIFIER || 'XTL-8X6B8DVC3S.com.cristiant2608.abacus.personal';
 
 export default {
   name: IS_PERSONAL ? 'AbacusPersonal' : IS_DEV ? 'Abacus.dev' : 'Abacus',
@@ -39,8 +43,8 @@ export default {
     config: {
       usesNonExemptEncryption: false,
     },
-    bundleIdentifier: IS_PERSONAL ? 'com.cristiant2608.abacus.personal' : IS_DEV ? 'abacus.fireflyiii.ios.app.dev' : 'abacus.ios.app',
-    buildNumber: '0.25.0',
+    bundleIdentifier: IS_PERSONAL ? PERSONAL_APP_IDENTIFIER : IS_DEV ? 'abacus.fireflyiii.ios.app.dev' : 'abacus.ios.app',
+    buildNumber: IS_PERSONAL ? (process.env.PERSONAL_IOS_BUILD_NUMBER || '1') : '0.25.0',
   },
   android: {
     icon: './src/images/icon-abacus.png',

@@ -9,7 +9,7 @@ import zipfile
 from pathlib import PurePosixPath
 
 
-def verify(path, app_id="com.cristiant2608.abacus.probe", widget_id="com.cristiant2608.abacus.probe.widget", scheme="abacus-personal-probe"):
+def verify(path, app_id="XTL-8X6B8DVC3S.com.cristiant2608.abacus.probe", widget_id="XTL-8X6B8DVC3S.com.cristiant2608.abacus.probe.widget", scheme="abacus-personal-probe"):
     with zipfile.ZipFile(path) as archive:
         names = set(archive.namelist())
         apps = [name for name in names if name.startswith("Payload/")
@@ -42,6 +42,11 @@ def verify(path, app_id="com.cristiant2608.abacus.probe", widget_id="com.cristia
         metadata = [name for name in names if name.startswith(app_path + "Metadata.appintents/")]
         if not metadata:
             raise ValueError("App Intents metadata is missing")
+        training_path = app_path + "Metadata.appintents/root.ssu.yaml"
+        if training_path in names:
+            training = archive.read(training_path).decode()
+            if f"bundleIdentifier: {app_id}\n" not in training:
+                raise ValueError("App Shortcuts training metadata uses a different bundle identifier")
         return {"app": app["CFBundleIdentifier"], "widget": widget["CFBundleIdentifier"],
                 "schemes": schemes, "app_intents_metadata": metadata}
 
@@ -49,8 +54,8 @@ def verify(path, app_id="com.cristiant2608.abacus.probe", widget_id="com.cristia
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("ipa")
-    parser.add_argument("--app-id", default="com.cristiant2608.abacus.probe")
-    parser.add_argument("--widget-id", default="com.cristiant2608.abacus.probe.widget")
+    parser.add_argument("--app-id", default="XTL-8X6B8DVC3S.com.cristiant2608.abacus.probe")
+    parser.add_argument("--widget-id", default="XTL-8X6B8DVC3S.com.cristiant2608.abacus.probe.widget")
     parser.add_argument("--scheme", default="abacus-personal-probe")
     args = parser.parse_args()
     try:

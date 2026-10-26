@@ -15,7 +15,7 @@ targets:
     sources: [App, Shared]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.cristiant2608.abacus.probe
+        PRODUCT_BUNDLE_IDENTIFIER: XTL-8X6B8DVC3S.com.cristiant2608.abacus.probe
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Abacus Test
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
@@ -34,7 +34,7 @@ targets:
     sources: [Widget]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.cristiant2608.abacus.probe.widget
+        PRODUCT_BUNDLE_IDENTIFIER: XTL-8X6B8DVC3S.com.cristiant2608.abacus.probe.widget
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Abacus Test Widget
         SKIP_INSTALL: YES

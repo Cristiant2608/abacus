@@ -60,6 +60,8 @@ jobs:
     timeout-minutes: 60
     env:
       APP_VARIANT: personal
+      PERSONAL_IOS_BUILD_NUMBER: ${{ github.run_number }}
+      PERSONAL_APP_IDENTIFIER: XTL-8X6B8DVC3S.com.cristiant2608.abacus.personal
       CI: '1'
       EXPO_NO_TELEMETRY: '1'
     steps:
@@ -92,8 +94,8 @@ jobs:
       - name: Verify personal app and extension
         run: >-
           python3 scripts/verify-ios-probe.py build/abacus-personal-unsigned.ipa
-          --app-id com.cristiant2608.abacus.personal
-          --widget-id com.cristiant2608.abacus.personal.quickaccess
+          --app-id "$PERSONAL_APP_IDENTIFIER"
+          --widget-id "$PERSONAL_APP_IDENTIFIER.quickaccess"
           --scheme abacus-personal
       - uses: actions/upload-artifact@v4
         with:
