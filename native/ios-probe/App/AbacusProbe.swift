@@ -21,6 +21,22 @@ struct AbacusProbe: App {
                 Text(message).multilineTextAlignment(.center)
                 Text("Esta prueba no conecta con Firefly ni registra gastos.")
                     .font(.footnote).foregroundStyle(.secondary)
+                #if ABACUS_VALIDATION_PROBE
+                Text(Bundle.main.bundleIdentifier ?? "Sin identificador")
+                    .font(.caption2).textSelection(.enabled)
+                Button("Comprobar registro de Atajos") {
+                    Task {
+                        do {
+                            AbacusProbeShortcuts.updateAppShortcutParameters()
+                            try await PrepareExpenseIntent().donate()
+                            message = "iOS aceptó la donación de la acción. Pulsa el botón de Atajos de abajo."
+                        } catch {
+                            message = "Error de registro: \(error.localizedDescription)\n\(String(reflecting: error))"
+                        }
+                    }
+                }
+                ShortcutsLink()
+                #endif
             }
             .padding(24)
             .onOpenURL { url in

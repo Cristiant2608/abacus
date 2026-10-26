@@ -1,8 +1,8 @@
 const IS_DEV = process.env.APP_VARIANT === 'development';
 const IS_PERSONAL = process.env.APP_VARIANT === 'personal';
-// xtool normalizes existing XTL prefixes to the current signing identity.
-// Compile with the final identifier so App Intents' generated metadata agrees
-// with the identifier installed on the device.
+// Compile with the final identifier so App Intents metadata agrees with iOS.
+// The installer stages unprefixed Info.plist IDs: xtool adds its prefix even
+// when the incoming ID already contains one. Never alter compiled metadata.
 const PERSONAL_APP_IDENTIFIER = process.env.PERSONAL_APP_IDENTIFIER || 'XTL-8X6B8DVC3S.com.cristiant2608.abacus.personal';
 
 export default {

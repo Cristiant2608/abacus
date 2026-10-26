@@ -152,3 +152,14 @@ migra la aplicación a otro framework para esta prueba.
 La identidad compilada incluye el prefijo de firma de xtool. El verificador
 comprueba que los metadatos de App Intents coincidan con esa identidad. Cada
 compilación usa un número de versión creciente y registra los Atajos al iniciar.
+
+xtool añade el prefijo de identidad incondicionalmente. El instalador prepara
+una copia temporal del IPA y retira un único prefijo de `CFBundleIdentifier`
+en la app y el widget antes de firmar. Los metadatos de App Intents y los
+ejecutables permanecen idénticos. Así, la identidad firmada vuelve a coincidir
+con la compilada, sin duplicar `XTL-…`. El IPA original no se modifica.
+Si está disponible la herramienta local de diagnóstico, el instalador comprueba
+también el identificador y número de compilación instalados por USB.
+
+Ejecutar `python3 scripts/test-prepare-xtool-ipa.py` para comprobar la preparación,
+la identidad resultante de la firma y el rechazo de metadatos incompatibles.

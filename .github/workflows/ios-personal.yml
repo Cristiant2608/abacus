@@ -26,6 +26,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Check xtool signing identity staging
+        run: python3 scripts/test-prepare-xtool-ipa.py
       - name: Install XcodeGen
         run: brew install xcodegen
       - name: Generate native validation project
@@ -36,7 +38,8 @@ jobs:
           xcodebuild -project native/ios-probe/AbacusProbe.xcodeproj
           -scheme AbacusProbe -configuration Release
           -sdk iphoneos -destination 'generic/platform=iOS'
-          -derivedDataPath build/probe CODE_SIGNING_ALLOWED=NO build
+          -derivedDataPath build/probe CODE_SIGNING_ALLOWED=NO
+          CURRENT_PROJECT_VERSION=${{ github.run_number }} build
       - name: Package for local signing
         run: |
           mkdir -p build/package/Payload
@@ -56,13 +59,14 @@ jobs:
           retention-days: 7
   abacus:
     needs: probe
-    runs-on: macos-26
+    runs-on: macos-15
     timeout-minutes: 60
     env:
       APP_VARIANT: personal
       PERSONAL_IOS_BUILD_NUMBER: ${{ github.run_number }}
       PERSONAL_APP_IDENTIFIER: XTL-8X6B8DVC3S.com.cristiant2608.abacus.personal
       CI: '1'
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
       EXPO_NO_TELEMETRY: '1'
     steps:
       - uses: actions/checkout@v4
