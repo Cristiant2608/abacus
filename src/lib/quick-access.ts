@@ -19,6 +19,9 @@ export const profileKeyFor = (backendURL: string, email: string) => JSON.stringi
   backendURL.trim().replace(/\/+$/, ''), email.trim().toLowerCase(),
 ]);
 
+export const canPresentQuickAccess = (routes: { name: string }[]) => routes[0]?.name === 'dashboard'
+  && routes.every(({ name }) => ['dashboard', 'QuickAccessScreen'].includes(name));
+
 export const normalizeExpenseAmount = (value: string): string => {
   const amount = value.trim().replace(',', '.');
   if (!/^\d+(?:\.\d+)?$/.test(amount) || !Number.isFinite(Number(amount)) || Number(amount) <= 0) {

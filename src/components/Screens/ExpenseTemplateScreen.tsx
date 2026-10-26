@@ -38,7 +38,7 @@ export default function ExpenseTemplateScreen({ navigation, route }: ScreenType)
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 80 }} keyboardShouldPersistTaps="handled">
         <ALabel isRequired>{translate('quick_access_name')}</ALabel>
         <AInput value={name} onChangeText={setName} height={48} placeholder={translate('quick_access_name')} />
-        <TransactionSplitForm index={0} total={1} isNew={false} handleDelete={() => {}} transaction={split} onChange={setSplit} />
+        <TransactionSplitForm index={0} total={1} isNew={false} handleDelete={() => {}} transaction={split} onChange={setSplit} templateMode />
         <AView style={{ marginTop: 20 }}>
           <AButton type="primary" style={{ height: 'auto', minHeight: 52, padding: 12 }} onPress={save}>
             <AText color="white" bold>{translate('quick_access_save')}</AText>

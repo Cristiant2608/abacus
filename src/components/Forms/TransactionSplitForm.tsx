@@ -31,6 +31,7 @@ export default function TransactionSplitForm({
   transaction,
   onChange = null,
   compact = false,
+  templateMode = false,
 }) {
   const [locale] = getLocales();
   const displayForeignCurrency = useSelector((state: RootState) => state.configuration.displayForeignCurrency);
@@ -216,7 +217,7 @@ export default function TransactionSplitForm({
       </AFormView>
       )}
 
-      {showDetails && (
+      {showDetails && !templateMode && (
       <AFormView>
         <ALabel isRequired>
           {translate('transaction_form_date_label')}

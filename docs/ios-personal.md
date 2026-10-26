@@ -55,6 +55,15 @@ bash scripts/ios-personal-install.sh artifacts/abacus-personal-unsigned.ipa
 La nueva instalación requiere configurar Firefly de nuevo. Si se usa OAuth,
 registrar en Firefly la URL de retorno que muestre Abacus Personal.
 
+Si Firefly rechaza `abacus-personal://redirect` con un error de formato de
+`redirect_uris`, abrir `/settings/configuration` en Firefly y añadir el protocolo
+`abacus-personal` a los protocolos de URL permitidos, conservando los anteriores.
+Introducir solo el protocolo, sin `://redirect`, en esa lista. Después registrar
+la URL de retorno completa al crear el cliente OAuth. Este mecanismo se explica
+en la [incidencia oficial de Firefly](https://github.com/firefly-iii/firefly-iii/issues/12243).
+Como alternativa, crear un token de acceso personal y activar su opción en el
+formulario de Abacus; ese método no necesita URL de retorno.
+
 El trabajo nativo verifica el ejecutable, la identidad de la app y del widget,
 la URL de apertura y los metadatos compilados de App Intents antes de publicar
 el artefacto. La misma comprobación se puede ejecutar localmente con

@@ -30,6 +30,9 @@
 
 ### 🎙 Introduction
 
+For the personal iPhone build with expense templates, Shortcuts and widgets,
+see [Abacus Personal setup](docs/ios-personal.md).
+
 [Firefly III](https://github.com/firefly-iii/firefly-iii) mobile application to manage your self-hosted Firefly III from
 your mobile.
 

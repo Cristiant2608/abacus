@@ -1,6 +1,6 @@
 import {
   normalizeExpenseAmount, parseQuickAccessURL, prepareExpense, profileKeyFor,
-  QuickAccessQueue, quickAccessURL, ExpenseTemplate,
+  QuickAccessQueue, quickAccessURL, ExpenseTemplate, canPresentQuickAccess,
 } from '../quick-access';
 import { initialSplit } from '../../models/transactions';
 
@@ -16,6 +16,16 @@ const template: ExpenseTemplate = {
 };
 
 describe('expense links and requests', () => {
+  test.each([
+    [[], false], [['credentials'], false], [['dashboard'], true],
+    [['dashboard', 'QuickAccessScreen'], true],
+    [['dashboard', 'QuickExpenseScreen'], false],
+    [['dashboard', 'TransactionCreateScreen', 'FilterScreen'], false],
+    [['dashboard', 'ExpenseTemplateScreen'], false],
+  ])('waits for authentication/editors while allowing the template list: %j', (names, expected) => {
+    expect(canPresentQuickAccess((names as string[]).map((name) => ({ name })))).toBe(expected);
+  });
+
   test.each(['0', '-1', 'NaN', 'Infinity', '1e3', '1.000,50', '1,000.50', '2abc', ''])('rejects an ambiguous or invalid amount: %s', (value) => {
     expect(() => normalizeExpenseAmount(value)).toThrow('quick_access_invalid_amount');
   });

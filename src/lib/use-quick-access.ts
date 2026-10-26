@@ -11,7 +11,9 @@ import { CommonActions, NavigationContainerRefWithCurrent } from '@react-navigat
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import translate from '../i18n/locale';
-import { prepareExpense, QuickAccessQueue, quickAccessURL } from './quick-access';
+import {
+  canPresentQuickAccess, prepareExpense, QuickAccessQueue, quickAccessURL,
+} from './quick-access';
 
 export const quickAccessScheme = () => Linking.resolveScheme({ isSilent: true }) || 'abacusfiiiapp';
 
@@ -109,7 +111,7 @@ export default function useQuickAccess(navigation: NavigationContainerRefWithCur
 
   useEffect(() => {
     // Wait for login/biometrics and never replace an open transaction or modal.
-    if (!navigation.isReady() || !profileKey || !loggedIn || root.routes.length !== 1) return;
+    if (!navigation.isReady() || !profileKey || !loggedIn || !canPresentQuickAccess(root.routes)) return;
     const request = queue.current.shift();
     if (!request) return;
     try {

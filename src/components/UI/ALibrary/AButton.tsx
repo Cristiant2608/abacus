@@ -37,6 +37,8 @@ export default function AButton({
   return (
     <Pressable
       testID={testID}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
       disabled={disabled || loading}
       onPress={onPress}
       style={({ pressed }) => ({
