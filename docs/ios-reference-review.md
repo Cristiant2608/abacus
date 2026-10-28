@@ -83,6 +83,7 @@ entre solicitudes simultáneas. No se ha copiado código de los repositorios.
 
 Los widgets de Scriptable comparten la lógica probada de cálculos y paginación
 con Abacus. Las credenciales se configuran por separado y se guardan en el
-llavero de Scriptable. El registro de App Intents requiere todavía validación
-física: una compilación y unos metadatos correctos no bastan para declararlo
-resuelto. La guía de uso está en [ios-personal.md](ios-personal.md).
+llavero de Scriptable. El 28 de octubre se verificó físicamente en Atajos la aparición de ambas
+acciones de Abacus Personal y el usuario confirmó la apertura de una plantilla
+mediante Preparar movimiento. El guardado directo sigue pendiente de una prueba
+real contra su servidor. La guía de uso está en [ios-personal.md](ios-personal.md).

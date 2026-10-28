@@ -2,8 +2,11 @@
 
 Versión personal de Abacus con plantillas, captura rápida, Atajos y widgets de
 iOS. Se instala junto a la app original y requiere configurar Firefly de nuevo.
-La firma gratuita y los widgets funcionan en el iPhone conectado. La aparición
-de acciones en Atajos sigue pendiente de verificación en el dispositivo.
+La firma gratuita y los widgets funcionan en el iPhone conectado. El 28 de
+octubre de 2026 se verificó en la compilación 13 que buscar «Abacus Personal»
+en Añadir acción muestra «Preparar movimiento» y «Guardar movimiento». El usuario
+confirmó que Preparar movimiento abre el formulario con la plantilla y el importe
+correctos. El guardado directo requiere todavía una comprobación real de envío.
 
 ## Uso
 
